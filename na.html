@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Name Slot Machine (3 Sections)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 20px; max-width: 980px; }
+    h1 { margin: 0 0 8px; }
+    .muted { color: #666; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
+    .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; }
+    textarea { width: 100%; height: 120px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; }
+    button { padding: 10px 12px; border-radius: 10px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+    button:active { transform: translateY(1px); }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .slot {
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 1px solid #ddd;
+      padding: 14px;
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      background: #fafafa;
+    }
+    .combo {
+      margin-top: 14px;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .combo .big { font-size: 28px; font-weight: 800; }
+    ul { padding-left: 18px; }
+    .pill { display:inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; font-size: 12px; color:#444; }
+  </style>
+</head>
+<body>
+  <h1>Name Slot Machine</h1>
+  <div class="muted">Paste one item per line in each section. Spin each section or spin all. Save favorites. (Everything is stored locally in your browser.)</div>
+
+  <div class="row" style="margin: 14px 0;">
+    <button id="spinAllBtn">🎰 Spin ALL</button>
+    <button id="saveFavBtn">⭐ Save combo</button>
+    <button id="copyComboBtn">📋 Copy combo</button>
+    <button id="clearFavBtn">🧹 Clear favorites</button>
+    <span class="pill" id="countsPill">—</span>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Section 1 (First)</h3>
+      <textarea id="list1" placeholder="e.g.&#10;Avery&#10;Rowan&#10;Mika"></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button id="spin1Btn">Spin 1</button>
+      </div>
+      <div class="slot" id="slot1">—</div>
+    </div>
+
+    <div class="card">
+      <h3>Section 2 (Middle / Modifier)</h3>
+      <textarea id="list2" placeholder="e.g.&#10;Jay&#10;Morgan&#10;Sky"></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button id="spin2Btn">Spin 2</button>
+      </div>
+      <div class="slot" id="slot2">—</div>
+    </div>
+
+    <div class="card">
+      <h3>Section 3 (Last)</h3>
+      <textarea id="list3" placeholder="e.g.&#10;Carter&#10;Nguyen"></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button id="spin3Btn">Spin 3</button>
+      </div>
+      <div class="slot" id="slot3">—</div>
+    </div>
+  </div>
+
+  <div class="combo">
+    <div class="muted">Current combo</div>
+    <div class="big" id="comboText">—</div>
+  </div>
+
+  <h3>Favorites</h3>
+  <ul id="favList"></ul>
+
+  <script>
+    const els = {
+      list1: document.getElementById("list1"),
+      list2: document.getElementById("list2"),
+      list3: document.getElementById("list3"),
+      slot1: document.getElementById("slot1"),
+      slot2: document.getElementById("slot2"),
+      slot3: document.getElementById("slot3"),
+      comboText: document.getElementById("comboText"),
+      countsPill: document.getElementById("countsPill"),
+      favList: document.getElementById("favList"),
+    };
+
+    // Persist inputs + favorites locally
+    const KEY = "name_slot_machine_v1";
+    const state = JSON.parse(localStorage.getItem(KEY) || "{}");
+    els.list1.value = state.list1 || "";
+    els.list2.value = state.list2 || "";
+    els.list3.value = state.list3 || "";
+    let favorites = Array.isArray(state.favorites) ? state.favorites : [];
+
+    const current = { a: "", b: "", c: "" };
+
+    function lines(text) {
+      return text.split("\n").map(s => s.trim()).filter(Boolean);
+    }
+
+    function saveState() {
+      localStorage.setItem(KEY, JSON.stringify({
+        list1: els.list1.value,
+        list2: els.list2.value,
+        list3: els.list3.value,
+        favorites
+      }));
+    }
+
+    function updateCounts() {
+      const a = lines(els.list1.value);
+      const b = lines(els.list2.value);
+      const c = lines(els.list3.value);
+      const total = a.length * b.length * c.length;
+      els.countsPill.textContent = `Items: ${a.length} • ${b.length} • ${c.length} • Possible combos: ${total || 0}`;
+    }
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function spinSection(which) {
+      const a = lines(els.list1.value);
+      const b = lines(els.list2.value);
+      const c = lines(els.list3.value);
+
+      if (which === 1) current.a = a.length ? pickRandom(a) : "";
+      if (which === 2) current.b = b.length ? pickRandom(b) : "";
+      if (which === 3) current.c = c.length ? pickRandom(c) : "";
+
+      els.slot1.textContent = current.a || "—";
+      els.slot2.textContent = current.b || "—";
+      els.slot3.textContent = current.c || "—";
+
+      updateCombo();
+      updateCounts();
+      saveState();
+    }
+
+    function spinAll() {
+      spinSection(1);
+      spinSection(2);
+      spinSection(3);
+    }
+
+    function updateCombo() {
+      const parts = [current.a, current.b, current.c].filter(Boolean);
+      els.comboText.textContent = parts.length ? parts.join(" ") : "—";
+    }
+
+    function renderFavorites() {
+      els.favList.innerHTML = "";
+      favorites.forEach((item, idx) => {
+        const li = document.createElement("li");
+        li.textContent = item + " ";
+        const btn = document.createElement("button");
+        btn.textContent = "Remove";
+        btn.onclick = () => {
+          favorites.splice(idx, 1);
+          saveState();
+          renderFavorites();
+        };
+        li.appendChild(btn);
+        els.favList.appendChild(li);
+      });
+    }
+
+    // Buttons
+    document.getElementById("spin1Btn").onclick = () => spinSection(1);
+    document.getElementById("spin2Btn").onclick = () => spinSection(2);
+    document.getElementById("spin3Btn").onclick = () => spinSection(3);
+    document.getElementById("spinAllBtn").onclick = () => spinAll();
+
+    document.getElementById("saveFavBtn").onclick = () => {
+      const combo = els.comboText.textContent;
+      if (!combo || combo === "—") return;
+      if (!favorites.includes(combo)) favorites.unshift(combo);
+      saveState();
+      renderFavorites();
+    };
+
+    document.getElementById("clearFavBtn").onclick = () => {
+      favorites = [];
+      saveState();
+      renderFavorites();
+    };
+
+    document.getElementById("copyComboBtn").onclick = async () => {
+      const combo = els.comboText.textContent;
+      if (!combo || combo === "—") return;
+      try { await navigator.clipboard.writeText(combo); } catch (e) {}
+    };
+
+    // Save on input changes
+    ["list1","list2","list3"].forEach(k => {
+      els[k].addEventListener("input", () => {
+        updateCounts();
+        saveState();
+      });
+    });
+
+    // Initialize with existing state if any
+    updateCounts();
+    renderFavorites();
+    // Optional: start with a spin if inputs already exist
+    if (lines(els.list1.value).length || lines(els.list2.value).length || lines(els.list3.value).length) {
+      // don't force it—just keep slots blank until you press spin
+      updateCombo();
+    }
+  </script>
+</body>
+</html>
