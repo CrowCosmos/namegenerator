@@ -3,229 +3,503 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Name Slot Machine (3 Sections)</title>
+  <title>Name Slot Machine</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 20px; max-width: 980px; }
-    h1 { margin: 0 0 8px; }
-    .muted { color: #666; }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-    @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
-    .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; }
-    textarea { width: 100%; height: 120px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; }
-    button { padding: 10px 12px; border-radius: 10px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
-    button:active { transform: translateY(1px); }
-    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .slot {
-      margin-top: 10px;
+    :root { --border:#e4e4e4; --muted:#666; --bg:#ffffff; --card:#fafafa; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: var(--bg);
+      color: #111;
+    }
+    header {
+      padding: 16px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    .muted { color: var(--muted); font-size: 13px; }
+
+    main { padding: 14px 14px 88px; max-width: 980px; margin: 0 auto; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      border: 1px solid var(--border);
       border-radius: 14px;
-      border: 1px solid #ddd;
-      padding: 14px;
-      min-height: 62px;
+      padding: 12px;
+      background: #fff;
+    }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    input[type="text"]{
+      flex: 1;
+      min-width: 180px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      outline: none;
+      font-size: 16px;
+    }
+    button {
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid #cfcfcf;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:active { transform: translateY(1px); }
+
+    .list {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 10px;
+      background: var(--card);
+    }
+    .nameText { font-size: 16px; font-weight: 650; }
+    .actions { display:flex; gap: 8px; }
+    .iconBtn {
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid #d6d6d6;
+      background: #fff;
+      min-width: 44px;
+      text-align: center;
+    }
+    .danger { border-color: #f0b3b3; }
+
+    /* Wheel */
+    .wheelGrid { display: grid; gap: 12px; }
+    @media (min-width: 900px) { .wheelGrid { grid-template-columns: 1fr 1fr 1fr; } }
+    .slot {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      padding: 16px;
+      min-height: 72px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      background: #fafafa;
+      font-weight: 800;
+      letter-spacing: .2px;
     }
     .combo {
-      margin-top: 14px;
-      border: 1px solid #ddd;
-      border-radius: 14px;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
       padding: 14px;
+      background: #fff;
     }
-    .combo .big { font-size: 28px; font-weight: 800; }
-    ul { padding-left: 18px; }
-    .pill { display:inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; font-size: 12px; color:#444; }
+    .combo .big { font-size: 28px; font-weight: 900; }
+    ul { padding-left: 18px; margin: 8px 0 0; }
+    li { margin: 8px 0; }
+
+    /* Bottom tabs */
+    .tabs {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      z-index: 20;
+    }
+    .tabBtn {
+      border: none;
+      background: #fff;
+      padding: 12px 8px 14px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .tabBtn strong { display:block; font-size: 12px; color:#111; }
+    .tabBtn.active {
+      background: #f6f6f6;
+      color: #111;
+    }
+    .pill {
+      display:inline-block;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      color: #444;
+      background:#fff;
+    }
   </style>
 </head>
 <body>
-  <h1>Name Slot Machine</h1>
-  <div class="muted">Paste one item per line in each section. Spin each section or spin all. Save favorites. (Everything is stored locally in your browser.)</div>
+  <header>
+    <h1 id="title">First names</h1>
+    <div class="muted" id="subtitle">Add names one at a time. Edit/delete anytime. Everything saves automatically.</div>
+  </header>
 
-  <div class="row" style="margin: 14px 0;">
-    <button id="spinAllBtn">🎰 Spin ALL</button>
-    <button id="saveFavBtn">⭐ Save combo</button>
-    <button id="copyComboBtn">📋 Copy combo</button>
-    <button id="clearFavBtn">🧹 Clear favorites</button>
-    <span class="pill" id="countsPill">—</span>
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <h3>Section 1 (First)</h3>
-      <textarea id="list1" placeholder="e.g.&#10;Avery&#10;Rowan&#10;Mika"></textarea>
-      <div class="row" style="margin-top:10px;">
-        <button id="spin1Btn">Spin 1</button>
+  <main>
+    <!-- First -->
+    <section class="panel active" id="panel-first">
+      <div class="card">
+        <div class="row">
+          <input id="input-first" type="text" placeholder="Add a first name…" autocomplete="off" />
+          <button id="add-first">Add</button>
+          <span class="pill" id="count-first">0</span>
+        </div>
+        <div class="list" id="list-first"></div>
       </div>
-      <div class="slot" id="slot1">—</div>
-    </div>
+    </section>
 
-    <div class="card">
-      <h3>Section 2 (Middle / Modifier)</h3>
-      <textarea id="list2" placeholder="e.g.&#10;Jay&#10;Morgan&#10;Sky"></textarea>
-      <div class="row" style="margin-top:10px;">
-        <button id="spin2Btn">Spin 2</button>
+    <!-- Middle -->
+    <section class="panel" id="panel-middle">
+      <div class="card">
+        <div class="row">
+          <input id="input-middle" type="text" placeholder="Add a middle name / modifier…" autocomplete="off" />
+          <button id="add-middle">Add</button>
+          <span class="pill" id="count-middle">0</span>
+        </div>
+        <div class="list" id="list-middle"></div>
       </div>
-      <div class="slot" id="slot2">—</div>
-    </div>
+    </section>
 
-    <div class="card">
-      <h3>Section 3 (Last)</h3>
-      <textarea id="list3" placeholder="e.g.&#10;Carter&#10;Nguyen"></textarea>
-      <div class="row" style="margin-top:10px;">
-        <button id="spin3Btn">Spin 3</button>
+    <!-- Last -->
+    <section class="panel" id="panel-last">
+      <div class="card">
+        <div class="row">
+          <input id="input-last" type="text" placeholder="Add a last name…" autocomplete="off" />
+          <button id="add-last">Add</button>
+          <span class="pill" id="count-last">0</span>
+        </div>
+        <div class="list" id="list-last"></div>
       </div>
-      <div class="slot" id="slot3">—</div>
-    </div>
-  </div>
+    </section>
 
-  <div class="combo">
-    <div class="muted">Current combo</div>
-    <div class="big" id="comboText">—</div>
-  </div>
+    <!-- Wheel -->
+    <section class="panel" id="panel-wheel">
+      <div class="card">
+        <div class="row" style="margin-bottom:10px;">
+          <button id="spin-all">🎰 Spin ALL</button>
+          <button id="save-fav">⭐ Save combo</button>
+          <button id="copy-combo">📋 Copy</button>
+          <span class="pill" id="counts-pill">Items: 0 • 0 • 0</span>
+        </div>
 
-  <h3>Favorites</h3>
-  <ul id="favList"></ul>
+        <div class="wheelGrid">
+          <div>
+            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+              <strong>First</strong>
+              <button id="spin-first">Spin</button>
+            </div>
+            <div class="slot" id="slot-first">—</div>
+          </div>
+
+          <div>
+            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+              <strong>Middle</strong>
+              <button id="spin-middle">Spin</button>
+            </div>
+            <div class="slot" id="slot-middle">—</div>
+          </div>
+
+          <div>
+            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+              <strong>Last</strong>
+              <button id="spin-last">Spin</button>
+            </div>
+            <div class="slot" id="slot-last">—</div>
+          </div>
+        </div>
+
+        <div class="combo">
+          <div class="muted">Current combo</div>
+          <div class="big" id="combo-text">—</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div class="row" style="justify-content:space-between;">
+          <strong>Favorites</strong>
+          <button class="danger" id="clear-favs">🧹 Clear favorites</button>
+        </div>
+        <ul id="fav-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Bottom tabs">
+    <button class="tabBtn active" data-tab="first"><strong>First</strong>names</button>
+    <button class="tabBtn" data-tab="middle"><strong>Middle</strong>names</button>
+    <button class="tabBtn" data-tab="last"><strong>Last</strong>names</button>
+    <button class="tabBtn" data-tab="wheel"><strong>Wheel</strong>slot</button>
+  </nav>
 
   <script>
-    const els = {
-      list1: document.getElementById("list1"),
-      list2: document.getElementById("list2"),
-      list3: document.getElementById("list3"),
-      slot1: document.getElementById("slot1"),
-      slot2: document.getElementById("slot2"),
-      slot3: document.getElementById("slot3"),
-      comboText: document.getElementById("comboText"),
-      countsPill: document.getElementById("countsPill"),
-      favList: document.getElementById("favList"),
-    };
-
-    // Persist inputs + favorites locally
-    const KEY = "name_slot_machine_v1";
+    // ===== Storage =====
+    const KEY = "name_slot_app_v1";
     const state = JSON.parse(localStorage.getItem(KEY) || "{}");
-    els.list1.value = state.list1 || "";
-    els.list2.value = state.list2 || "";
-    els.list3.value = state.list3 || "";
+
+    let firstNames = Array.isArray(state.firstNames) ? state.firstNames : [];
+    let middleNames = Array.isArray(state.middleNames) ? state.middleNames : [];
+    let lastNames = Array.isArray(state.lastNames) ? state.lastNames : [];
     let favorites = Array.isArray(state.favorites) ? state.favorites : [];
 
-    const current = { a: "", b: "", c: "" };
+    const current = { first: "", middle: "", last: "" };
 
-    function lines(text) {
-      return text.split("\n").map(s => s.trim()).filter(Boolean);
-    }
-
-    function saveState() {
+    function save() {
       localStorage.setItem(KEY, JSON.stringify({
-        list1: els.list1.value,
-        list2: els.list2.value,
-        list3: els.list3.value,
-        favorites
+        firstNames, middleNames, lastNames, favorites
       }));
     }
 
-    function updateCounts() {
-      const a = lines(els.list1.value);
-      const b = lines(els.list2.value);
-      const c = lines(els.list3.value);
-      const total = a.length * b.length * c.length;
-      els.countsPill.textContent = `Items: ${a.length} • ${b.length} • ${c.length} • Possible combos: ${total || 0}`;
+    // ===== Helpers =====
+    const $ = (id) => document.getElementById(id);
+    const title = $("title");
+    const subtitle = $("subtitle");
+
+    function normalizeInput(s) {
+      return (s || "").trim().replace(/\s+/g, " ");
     }
 
     function pickRandom(arr) {
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function spinSection(which) {
-      const a = lines(els.list1.value);
-      const b = lines(els.list2.value);
-      const c = lines(els.list3.value);
+    function updateCounts() {
+      $("count-first").textContent = firstNames.length;
+      $("count-middle").textContent = middleNames.length;
+      $("count-last").textContent = lastNames.length;
 
-      if (which === 1) current.a = a.length ? pickRandom(a) : "";
-      if (which === 2) current.b = b.length ? pickRandom(b) : "";
-      if (which === 3) current.c = c.length ? pickRandom(c) : "";
-
-      els.slot1.textContent = current.a || "—";
-      els.slot2.textContent = current.b || "—";
-      els.slot3.textContent = current.c || "—";
-
-      updateCombo();
-      updateCounts();
-      saveState();
+      const total = firstNames.length * middleNames.length * lastNames.length;
+      $("counts-pill").textContent = `Items: ${firstNames.length} • ${middleNames.length} • ${lastNames.length} • Combos: ${total || 0}`;
     }
 
-    function spinAll() {
-      spinSection(1);
-      spinSection(2);
-      spinSection(3);
-    }
+    function renderList(containerId, items, onEdit, onDelete) {
+      const container = $(containerId);
+      container.innerHTML = "";
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "muted";
+        empty.style.padding = "10px 2px";
+        empty.textContent = "No names yet. Add one above.";
+        container.appendChild(empty);
+        return;
+      }
+      items.forEach((name, idx) => {
+        const row = document.createElement("div");
+        row.className = "item";
 
-    function updateCombo() {
-      const parts = [current.a, current.b, current.c].filter(Boolean);
-      els.comboText.textContent = parts.length ? parts.join(" ") : "—";
-    }
+        const left = document.createElement("div");
+        left.className = "nameText";
+        left.textContent = name;
 
-    function renderFavorites() {
-      els.favList.innerHTML = "";
-      favorites.forEach((item, idx) => {
-        const li = document.createElement("li");
-        li.textContent = item + " ";
-        const btn = document.createElement("button");
-        btn.textContent = "Remove";
-        btn.onclick = () => {
-          favorites.splice(idx, 1);
-          saveState();
-          renderFavorites();
-        };
-        li.appendChild(btn);
-        els.favList.appendChild(li);
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "iconBtn";
+        editBtn.title = "Edit";
+        editBtn.textContent = "✏️";
+        editBtn.onclick = () => onEdit(idx);
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "iconBtn danger";
+        delBtn.title = "Delete";
+        delBtn.textContent = "🗑️";
+        delBtn.onclick = () => onDelete(idx);
+
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        row.appendChild(left);
+        row.appendChild(actions);
+        container.appendChild(row);
       });
     }
 
-    // Buttons
-    document.getElementById("spin1Btn").onclick = () => spinSection(1);
-    document.getElementById("spin2Btn").onclick = () => spinSection(2);
-    document.getElementById("spin3Btn").onclick = () => spinSection(3);
-    document.getElementById("spinAllBtn").onclick = () => spinAll();
+    function promptEdit(oldValue) {
+      const next = normalizeInput(prompt("Edit name:", oldValue) || "");
+      if (!next) return null;
+      return next;
+    }
 
-    document.getElementById("saveFavBtn").onclick = () => {
-      const combo = els.comboText.textContent;
-      if (!combo || combo === "—") return;
-      if (!favorites.includes(combo)) favorites.unshift(combo);
-      saveState();
+    // ===== Render all =====
+    function renderAll() {
+      renderList("list-first", firstNames,
+        (i) => { const v = promptEdit(firstNames[i]); if (v) { firstNames[i]=v; save(); renderAll(); } },
+        (i) => { firstNames.splice(i,1); save(); renderAll(); }
+      );
+
+      renderList("list-middle", middleNames,
+        (i) => { const v = promptEdit(middleNames[i]); if (v) { middleNames[i]=v; save(); renderAll(); } },
+        (i) => { middleNames.splice(i,1); save(); renderAll(); }
+      );
+
+      renderList("list-last", lastNames,
+        (i) => { const v = promptEdit(lastNames[i]); if (v) { lastNames[i]=v; save(); renderAll(); } },
+        (i) => { lastNames.splice(i,1); save(); renderAll(); }
+      );
+
       renderFavorites();
+      updateCounts();
+      updateCombo();
+    }
+
+    // ===== Add handlers =====
+    function addTo(list, inputEl) {
+      const v = normalizeInput(inputEl.value);
+      if (!v) return;
+      // Avoid duplicates that only differ by case
+      const exists = list.some(x => x.toLowerCase() === v.toLowerCase());
+      if (!exists) list.unshift(v);
+      inputEl.value = "";
+      save();
+      renderAll();
+      inputEl.focus();
+    }
+
+    $("add-first").onclick = () => addTo(firstNames, $("input-first"));
+    $("add-middle").onclick = () => addTo(middleNames, $("input-middle"));
+    $("add-last").onclick = () => addTo(lastNames, $("input-last"));
+
+    ["first","middle","last"].forEach(kind => {
+      const input = $("input-" + kind);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          $("add-" + kind).click();
+        }
+      });
+    });
+
+    // ===== Tabs =====
+    const panels = {
+      first: $("panel-first"),
+      middle: $("panel-middle"),
+      last: $("panel-last"),
+      wheel: $("panel-wheel")
     };
 
-    document.getElementById("clearFavBtn").onclick = () => {
-      favorites = [];
-      saveState();
-      renderFavorites();
+    function setTab(tab) {
+      for (const k in panels) panels[k].classList.remove("active");
+      panels[tab].classList.add("active");
+
+      document.querySelectorAll(".tabBtn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+
+      if (tab === "first") {
+        title.textContent = "First names";
+        subtitle.textContent = "Add names one at a time. Tap ✏️ to edit, 🗑️ to delete. Autosaves.";
+        $("input-first").focus();
+      } else if (tab === "middle") {
+        title.textContent = "Middle names";
+        subtitle.textContent = "These can be middle names, modifiers, or anything you want in slot #2.";
+        $("input-middle").focus();
+      } else if (tab === "last") {
+        title.textContent = "Last names";
+        subtitle.textContent = "Add last names here. Keep it simple—your list does the work.";
+        $("input-last").focus();
+      } else {
+        title.textContent = "Slot wheel";
+        subtitle.textContent = "Spin one section or all. Save favorites when your body says YES.";
+      }
+    }
+
+    document.querySelectorAll(".tabBtn").forEach(btn => {
+      btn.addEventListener("click", () => setTab(btn.dataset.tab));
+    });
+
+    // ===== Wheel =====
+    function updateCombo() {
+      $("slot-first").textContent = current.first || "—";
+      $("slot-middle").textContent = current.middle || "—";
+      $("slot-last").textContent = current.last || "—";
+
+      const parts = [current.first, current.middle, current.last].filter(Boolean);
+      $("combo-text").textContent = parts.length ? parts.join(" ") : "—";
+    }
+
+    function spin(which) {
+      if (which === "first") current.first = firstNames.length ? pickRandom(firstNames) : "";
+      if (which === "middle") current.middle = middleNames.length ? pickRandom(middleNames) : "";
+      if (which === "last") current.last = lastNames.length ? pickRandom(lastNames) : "";
+      updateCombo();
+    }
+
+    $("spin-first").onclick = () => spin("first");
+    $("spin-middle").onclick = () => spin("middle");
+    $("spin-last").onclick = () => spin("last");
+
+    $("spin-all").onclick = () => {
+      spin("first"); spin("middle"); spin("last");
     };
 
-    document.getElementById("copyComboBtn").onclick = async () => {
-      const combo = els.comboText.textContent;
+    $("copy-combo").onclick = async () => {
+      const combo = $("combo-text").textContent;
       if (!combo || combo === "—") return;
       try { await navigator.clipboard.writeText(combo); } catch (e) {}
     };
 
-    // Save on input changes
-    ["list1","list2","list3"].forEach(k => {
-      els[k].addEventListener("input", () => {
-        updateCounts();
-        saveState();
+    // Favorites
+    function renderFavorites() {
+      const ul = $("fav-list");
+      ul.innerHTML = "";
+      if (!favorites.length) {
+        const li = document.createElement("li");
+        li.className = "muted";
+        li.textContent = "No favorites yet.";
+        ul.appendChild(li);
+        return;
+      }
+      favorites.forEach((item, idx) => {
+        const li = document.createElement("li");
+        li.textContent = item + " ";
+        const btn = document.createElement("button");
+        btn.className = "iconBtn danger";
+        btn.textContent = "Remove";
+        btn.onclick = () => {
+          favorites.splice(idx, 1);
+          save();
+          renderFavorites();
+        };
+        li.appendChild(btn);
+        ul.appendChild(li);
       });
-    });
-
-    // Initialize with existing state if any
-    updateCounts();
-    renderFavorites();
-    // Optional: start with a spin if inputs already exist
-    if (lines(els.list1.value).length || lines(els.list2.value).length || lines(els.list3.value).length) {
-      // don't force it—just keep slots blank until you press spin
-      updateCombo();
     }
+
+    $("save-fav").onclick = () => {
+      const combo = $("combo-text").textContent;
+      if (!combo || combo === "—") return;
+      if (!favorites.includes(combo)) favorites.unshift(combo);
+      save();
+      renderFavorites();
+    };
+
+    $("clear-favs").onclick = () => {
+      favorites = [];
+      save();
+      renderFavorites();
+    };
+
+    // ===== Init =====
+    renderAll();
+    setTab("first");
   </script>
 </body>
 </html>
-
