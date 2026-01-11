@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Name Slot Machine</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111111;
+      --muted:#666666;
+      --card:#ffffff;
+      --card2:#fafafa;
+      --border:#e4e4e4;
+      --btn:#ffffff;
+      --btnBorder:#cfcfcf;
+      --shadow: 0 10px 24px rgba(0,0,0,0.10);
+      --danger:#ff3b30;
+      --dangerBorder:#f0b3b3;
+      --outline:#bdbdbd;
+      --tabActive: rgba(0,0,0,0.06);
+      --menuHover: rgba(0,0,0,0.06);
+    }
+
+    /* Dark = actually black-forward (not navy) */
+    [data-theme="dark"]{
+      --bg:#000000;
+      --text:#f2f2f2;
+      --muted:#a6a6a6;
+      --card:#0b0b0b;
+      --card2:#111111;
+      --border:#242424;
+      --btn:#0b0b0b;
+      --btnBorder:#2a2a2a;
+      --shadow: 0 10px 24px rgba(0,0,0,0.55);
+      --danger:#ff5a52;
+      --dangerBorder:#5a1f1f;
+      --outline:#3a3a3a;
+      --tabActive: rgba(255,255,255,0.10);
+      --menuHover: rgba(255,255,255,0.10);
+    }
+
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    header{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+    h1{ font-size: 18px; margin: 0 0 4px; }
+    .muted{ color: var(--muted); font-size: 13px; }
+
+    main{ padding: 14px 14px 88px; max-width: 980px; margin: 0 auto; }
+
+    .panel{ display:none; }
+    .panel.active{ display:block; }
+
+    .card{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: var(--card);
+    }
+
+    .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+    input[type="text"]{
+      flex: 1;
+      min-width: 180px;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      outline: none;
+      font-size: 16px;
+      background: var(--card2);
+      color: var(--text);
+    }
+
+    button{
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--btnBorder);
+      background: var(--btn);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:active{ transform: translateY(1px); }
+
+    .pill{
+      display:inline-block;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--card2);
+    }
+
+    /* ===== Lists (shared) ===== */
+    .list{ margin-top: 12px; display:grid; gap: 10px; }
+
+    .item{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 10px;
+      background: var(--card2);
+      user-select: none;
+      touch-action: none; /* for drag */
+      position: relative;
+    }
+    .item.dragging{
+      opacity: .78;
+      transform: scale(0.995);
+      box-shadow: var(--shadow);
+    }
+    .item.drop-target{
+      outline: 2px dashed var(--outline);
+      outline-offset: 2px;
+    }
+
+    .leftWrap{ display:flex; align-items:center; gap: 10px; min-width: 0; }
+
+    .handle{
+      width: 34px;
+      min-width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    .nameText{
+      font-size: 16px;
+      font-weight: 650;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 62vw;
+    }
+
+    /* ===== Dots menu ===== */
+    .menuBtn{
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 18px;
+      color: var(--muted);
+      padding: 0;
+    }
+
+    .menu{
+      position: absolute;
+      right: 10px;
+      top: 52px;
+      min-width: 160px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: none;
+      z-index: 30;
+    }
+    .menu.open{ display:block; }
+    .menuItem{
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 12px 12px;
+      text-align: left;
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .menuItem:hover{ background: var(--menuHover); }
+    .menuItem.danger{ color: var(--danger); }
+
+    /* ===== Wheel ===== */
+    .wheelGrid{ display:grid; gap: 10px; }
+    @media (max-width: 899px){
+      .wheelGrid{ grid-template-columns: 1fr 1fr 1fr; }
+      .slot{ font-size: 16px; padding: 12px; min-height: 64px; text-align: center; }
+      .wheelGrid strong{ font-size: 13px; }
+      .wheelGrid button{ padding: 10px 10px; font-size: 13px; }
+    }
+    @media (min-width: 900px){
+      .wheelGrid{ grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    }
+    .slot{
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--card2);
+      padding: 16px;
+      min-height: 72px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .comboBig{
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: var(--card);
+      font-size: 26px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: .2px;
+    }
+
+    /* ===== Bottom tabs ===== */
+    .tabs{
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-top: 1px solid var(--border);
+      background: var(--card);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      z-index: 20;
+    }
+    .tabBtn{
+      border: none;
+      background: transparent;
+      padding: 12px 8px 14px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .tabBtn strong{ display:block; font-size: 12px; color: var(--text); }
+    .tabBtn.active{ background: var(--tabActive); }
+
+    .headerRow{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .tinyBtn{
+      padding: 10px 10px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="headerRow">
+      <div>
+        <h1 id="title">First names</h1>
+        <div class="muted" id="subtitle">Add names one at a time. Drag by ≡ to reorder. Tap ⋮ for options. Autosaves.</div>
+      </div>
+      <div class="row" style="justify-content:flex-end;">
+        <button class="tinyBtn" id="themeToggle" title="Theme: Light ↔ Dark">🌓</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- First -->
+    <section class="panel active" id="panel-first">
+      <div class="card">
+        <div class="row">
+          <input id="input-first" type="text" placeholder="Add a first name…" autocomplete="off" />
+          <button id="add-first">Add</button>
+          <span class="pill" id="count-first">0</span>
+        </div>
+        <div class="list" id="list-first"></div>
+      </div>
+    </section>
+
+    <!-- Middle -->
+    <section class="panel" id="panel-middle">
+      <div class="card">
+        <div class="row">
+          <input id="input-middle" type="text" placeholder="Add a middle name / modifier…" autocomplete="off" />
+          <button id="add-middle">Add</button>
+          <span class="pill" id="count-middle">0</span>
+        </div>
+        <div class="list" id="list-middle"></div>
+      </div>
+    </section>
+
+    <!-- Last -->
+    <section class="panel" id="panel-last">
+      <div class="card">
+        <div class="row">
+          <input id="input-last" type="text" placeholder="Add a last name…" autocomplete="off" />
+          <button id="add-last">Add</button>
+          <span class="pill" id="count-last">0</span>
+        </div>
+        <div class="list" id="list-last"></div>
+      </div>
+    </section>
+
+    <!-- Wheel -->
+    <section class="panel" id="panel-wheel">
+      <div class="card">
+        <div class="row" style="margin-bottom:10px;">
+          <button id="spin-all">🎰 Spin ALL</button>
+          <button id="save-fav-top">⭐ Save favorite</button>
+          <span class="pill" id="counts-pill">Items: 0 • 0 • 0</span>
+        </div>
+
+        <div class="wheelGrid">
+          <div>
+            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+              <strong>First</strong>
+              <button id="spin-first">Spin</button>
+            </div>
+            <div class="slot" id="slot-first">—</div>
+          </div>
+
+          <div>
+            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+              <strong>Middle</strong>
+              <button id="spin-middle">Spin</button>
+            </div>
+            <div class="slot" id="slot-middle">—</div>
+          </div>
+
+          <div>
+            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+              <strong>Last</strong>
+              <button id="spin-last">Spin</button>
+            </div>
+            <div class="slot" id="slot-last">—</div>
+          </div>
+        </div>
+
+        <div class="comboBig" id="combo-text">—</div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div class="row" style="justify-content:space-between;">
+          <strong>Favorites</strong>
+          <span class="pill" id="count-favs">0</span>
+        </div>
+        <div class="list" id="list-favs"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs" aria-label="Bottom tabs">
+    <button class="tabBtn active" data-tab="first"><strong>First</strong>names</button>
+    <button class="tabBtn" data-tab="middle"><strong>Middle</strong>names</button>
+    <button class="tabBtn" data-tab="last"><strong>Last</strong>names</button>
+    <button class="tabBtn" data-tab="wheel"><strong>Wheel</strong>slot</button>
+  </nav>
+
+  <script>
+    // Keep the same key so you don't lose your stored names
+    const KEY = "name_slot_app_v6_dark_norepeat";
+    const state = JSON.parse(localStorage.getItem(KEY) || "{}");
+
+    let firstNames  = Array.isArray(state.firstNames) ? state.firstNames : [];
+    let middleNames = Array.isArray(state.middleNames) ? state.middleNames : [];
+    let lastNames   = Array.isArray(state.lastNames) ? state.lastNames : [];
+    let favorites   = Array.isArray(state.favorites) ? state.favorites : [];
+
+    let themeMode = (state.themeMode === "light" || state.themeMode === "dark")
+      ? state.themeMode
+      : "dark";
+
+    const current = { first: "", middle: "", last: "" };
+
+    function save() {
+      localStorage.setItem(KEY, JSON.stringify({ firstNames, middleNames, lastNames, favorites, themeMode }));
+    }
+
+    const $ = (id) => document.getElementById(id);
+    const title = $("title");
+    const subtitle = $("subtitle");
+
+    function normalizeInput(s) { return (s || "").trim().replace(/\s+/g, " "); }
+
+    function pickRandomDifferent(arr, currentValue) {
+      if (!arr.length) return "";
+      if (arr.length === 1) return arr[0];
+
+      const cur = (currentValue || "").toLowerCase();
+      const filtered = arr.filter(x => x.toLowerCase() !== cur);
+      const pool = filtered.length ? filtered : arr;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function applyTheme() {
+      document.documentElement.setAttribute("data-theme", themeMode);
+      save();
+    }
+    function toggleTheme() {
+      themeMode = (themeMode === "dark") ? "light" : "dark";
+      applyTheme();
+    }
+
+    function updateCounts() {
+      $("count-first").textContent = firstNames.length;
+      $("count-middle").textContent = middleNames.length;
+      $("count-last").textContent = lastNames.length;
+
+      const total = firstNames.length * middleNames.length * lastNames.length;
+      $("counts-pill").textContent = `Items: ${firstNames.length} • ${middleNames.length} • ${lastNames.length} • Combos: ${total || 0}`;
+
+      $("count-favs").textContent = favorites.length;
+    }
+
+    function promptEdit(oldValue) {
+      const next = normalizeInput(prompt("Edit name:", oldValue) || "");
+      return next ? next : null;
+    }
+
+    // ===== Menus =====
+    let openMenuEl = null;
+    function closeOpenMenu() {
+      if (openMenuEl) {
+        openMenuEl.classList.remove("open");
+        openMenuEl = null;
+      }
+    }
+    document.addEventListener("pointerdown", (e) => {
+      const insideMenu = e.target.closest(".menu") || e.target.closest(".menuBtn");
+      if (!insideMenu) closeOpenMenu();
+    });
+
+    // ===== Drag reorder =====
+    function attachReorderHandlers(containerEl, listRef) {
+      let draggingIdx = null;
+      let overIdx = null;
+
+      containerEl.addEventListener("pointerdown", (e) => {
+        const itemEl = e.target.closest(".item");
+        if (!itemEl) return;
+        const handle = e.target.closest(".handle");
+        if (!handle) return;
+
+        closeOpenMenu();
+        draggingIdx = Number(itemEl.dataset.index);
+        itemEl.classList.add("dragging");
+        itemEl.setPointerCapture(e.pointerId);
+      });
+
+      containerEl.addEventListener("pointermove", (e) => {
+        if (draggingIdx === null) return;
+
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const overItem = el ? el.closest(".item") : null;
+
+        containerEl.querySelectorAll(".item").forEach(x => x.classList.remove("drop-target"));
+
+        if (overItem && overItem.parentElement === containerEl) {
+          overIdx = Number(overItem.dataset.index);
+          if (!Number.isNaN(overIdx) && overIdx !== draggingIdx) overItem.classList.add("drop-target");
+        } else {
+          overIdx = null;
+        }
+      });
+
+      containerEl.addEventListener("pointerup", () => {
+        const draggingEl = containerEl.querySelector(".item.dragging");
+        if (draggingEl) draggingEl.classList.remove("dragging");
+        containerEl.querySelectorAll(".item").forEach(x => x.classList.remove("drop-target"));
+
+        if (draggingIdx !== null && overIdx !== null && overIdx !== draggingIdx) {
+          const item = listRef.splice(draggingIdx, 1)[0];
+          listRef.splice(overIdx, 0, item);
+          save();
+          renderAll();
+        }
+        draggingIdx = null;
+        overIdx = null;
+      });
+
+      containerEl.addEventListener("pointercancel", () => {
+        containerEl.querySelectorAll(".item").forEach(x => { x.classList.remove("dragging"); x.classList.remove("drop-target"); });
+        draggingIdx = null;
+        overIdx = null;
+      });
+    }
+
+    // Lists (Edit+Delete)
+    function renderList(containerId, items, onEdit, onDelete) {
+      const container = $(containerId);
+      container.innerHTML = "";
+
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "muted";
+        empty.style.padding = "10px 2px";
+        empty.textContent = "No names yet. Add one above.";
+        container.appendChild(empty);
+        return;
+      }
+
+      items.forEach((name, idx) => {
+        const row = document.createElement("div");
+        row.className = "item";
+        row.dataset.index = String(idx);
+
+        const left = document.createElement("div");
+        left.className = "leftWrap";
+
+        const handle = document.createElement("div");
+        handle.className = "handle";
+        handle.title = "Drag to reorder";
+        handle.textContent = "≡";
+
+        const text = document.createElement("div");
+        text.className = "nameText";
+        text.textContent = name;
+
+        left.appendChild(handle);
+        left.appendChild(text);
+
+        const menuBtn = document.createElement("button");
+        menuBtn.className = "menuBtn";
+        menuBtn.title = "Options";
+        menuBtn.type = "button";
+        menuBtn.textContent = "⋮";
+
+        const menu = document.createElement("div");
+        menu.className = "menu";
+
+        const edit = document.createElement("button");
+        edit.className = "menuItem";
+        edit.type = "button";
+        edit.textContent = "Edit";
+        edit.onclick = () => { closeOpenMenu(); onEdit(idx); };
+
+        const del = document.createElement("button");
+        del.className = "menuItem danger";
+        del.type = "button";
+        del.textContent = "Delete";
+        del.onclick = () => { closeOpenMenu(); onDelete(idx); };
+
+        menu.appendChild(edit);
+        menu.appendChild(del);
+
+        menuBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (openMenuEl && openMenuEl !== menu) closeOpenMenu();
+          const willOpen = !menu.classList.contains("open");
+          closeOpenMenu();
+          if (willOpen) { menu.classList.add("open"); openMenuEl = menu; }
+        };
+
+        row.appendChild(left);
+        row.appendChild(menuBtn);
+        row.appendChild(menu);
+        container.appendChild(row);
+      });
+    }
+
+    // Favorites (Delete only)
+    function renderFavs() {
+      const container = $("list-favs");
+      container.innerHTML = "";
+
+      if (!favorites.length) {
+        const empty = document.createElement("div");
+        empty.className = "muted";
+        empty.style.padding = "10px 2px";
+        empty.textContent = "No favorites yet.";
+        container.appendChild(empty);
+        return;
+      }
+
+      favorites.forEach((name, idx) => {
+        const row = document.createElement("div");
+        row.className = "item";
+        row.dataset.index = String(idx);
+
+        const left = document.createElement("div");
+        left.className = "leftWrap";
+
+        const handle = document.createElement("div");
+        handle.className = "handle";
+        handle.title = "Drag to reorder";
+        handle.textContent = "≡";
+
+        const text = document.createElement("div");
+        text.className = "nameText";
+        text.textContent = name;
+
+        left.appendChild(handle);
+        left.appendChild(text);
+
+        const menuBtn = document.createElement("button");
+        menuBtn.className = "menuBtn";
+        menuBtn.title = "Options";
+        menuBtn.type = "button";
+        menuBtn.textContent = "⋮";
+
+        const menu = document.createElement("div");
+        menu.className = "menu";
+
+        const del = document.createElement("button");
+        del.className = "menuItem danger";
+        del.type = "button";
+        del.textContent = "Delete";
+        del.onclick = () => {
+          closeOpenMenu();
+          favorites.splice(idx, 1);
+          save();
+          renderAll();
+        };
+
+        menu.appendChild(del);
+
+        menuBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (openMenuEl && openMenuEl !== menu) closeOpenMenu();
+          const willOpen = !menu.classList.contains("open");
+          closeOpenMenu();
+          if (willOpen) { menu.classList.add("open"); openMenuEl = menu; }
+        };
+
+        row.appendChild(left);
+        row.appendChild(menuBtn);
+        row.appendChild(menu);
+        container.appendChild(row);
+      });
+    }
+
+    let dragAttached = false;
+    function renderAll() {
+      renderList("list-first", firstNames,
+        (i) => { const v = promptEdit(firstNames[i]); if (v) { firstNames[i]=v; save(); renderAll(); } },
+        (i) => { firstNames.splice(i,1); save(); renderAll(); }
+      );
+      renderList("list-middle", middleNames,
+        (i) => { const v = promptEdit(middleNames[i]); if (v) { middleNames[i]=v; save(); renderAll(); } },
+        (i) => { middleNames.splice(i,1); save(); renderAll(); }
+      );
+      renderList("list-last", lastNames,
+        (i) => { const v = promptEdit(lastNames[i]); if (v) { lastNames[i]=v; save(); renderAll(); } },
+        (i) => { lastNames.splice(i,1); save(); renderAll(); }
+      );
+
+      renderFavs();
+      updateCounts();
+      updateCombo();
+
+      if (!dragAttached) {
+        attachReorderHandlers($("list-first"), firstNames);
+        attachReorderHandlers($("list-middle"), middleNames);
+        attachReorderHandlers($("list-last"), lastNames);
+        attachReorderHandlers($("list-favs"), favorites);
+        dragAttached = true;
+      }
+    }
+
+    function addTo(list, inputEl) {
+      const v = normalizeInput(inputEl.value);
+      if (!v) return;
+      const exists = list.some(x => x.toLowerCase() === v.toLowerCase());
+      if (!exists) list.unshift(v);
+      inputEl.value = "";
+      save();
+      renderAll();
+    }
+    $("add-first").onclick = () => addTo(firstNames, $("input-first"));
+    $("add-middle").onclick = () => addTo(middleNames, $("input-middle"));
+    $("add-last").onclick = () => addTo(lastNames, $("input-last"));
+
+    ["first","middle","last"].forEach(kind => {
+      $("input-" + kind).addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); $("add-" + kind).click(); }
+      });
+    });
+
+    const panels = {
+      first: $("panel-first"),
+      middle: $("panel-middle"),
+      last: $("panel-last"),
+      wheel: $("panel-wheel")
+    };
+
+    function setTab(tab) {
+      closeOpenMenu();
+      for (const k in panels) panels[k].classList.remove("active");
+      panels[tab].classList.add("active");
+
+      document.querySelectorAll(".tabBtn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+
+      if (tab === "first") {
+        title.textContent = "First names";
+        subtitle.textContent = "Add names one at a time. Drag by ≡ to reorder. Tap ⋮ for options. Autosaves.";
+      } else if (tab === "middle") {
+        title.textContent = "Middle names";
+        subtitle.textContent = "Slot #2 can be a middle name, modifier, nickname—anything. Drag by ≡ to reorder.";
+      } else if (tab === "last") {
+        title.textContent = "Last names";
+        subtitle.textContent = "Add last names here. Drag by ≡ to reorder. Tap ⋮ for options.";
+      } else {
+        title.textContent = "Slot wheel";
+        subtitle.textContent = "Spin sections or all. Save favorites. Favorites are reorderable too.";
+      }
+    }
+    document.querySelectorAll(".tabBtn").forEach(btn => {
+      btn.addEventListener("click", () => setTab(btn.dataset.tab));
+    });
+
+    function updateCombo() {
+      $("slot-first").textContent = current.first || "—";
+      $("slot-middle").textContent = current.middle || "—";
+      $("slot-last").textContent = current.last || "—";
+      const parts = [current.first, current.middle, current.last].filter(Boolean);
+      $("combo-text").textContent = parts.length ? parts.join(" ") : "—";
+    }
+
+    function spin(which) {
+      if (which === "first")  current.first  = pickRandomDifferent(firstNames, current.first);
+      if (which === "middle") current.middle = pickRandomDifferent(middleNames, current.middle);
+      if (which === "last")   current.last   = pickRandomDifferent(lastNames, current.last);
+      updateCombo();
+    }
+
+    $("spin-first").onclick = () => spin("first");
+    $("spin-middle").onclick = () => spin("middle");
+    $("spin-last").onclick = () => spin("last");
+    $("spin-all").onclick = () => { spin("first"); spin("middle"); spin("last"); };
+
+    function saveFavorite() {
+      const combo = $("combo-text").textContent;
+      if (!combo || combo === "—") return;
+      if (!favorites.includes(combo)) favorites.unshift(combo);
+      save();
+      renderAll();
+    }
+    $("save-fav-top").onclick = saveFavorite;
+
+    $("themeToggle").onclick = toggleTheme;
+
+    // Init
+    applyTheme();
+    renderAll();
+    setTab("first");
+  </script>
+</body>
+</html>
