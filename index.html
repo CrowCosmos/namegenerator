@@ -334,7 +334,7 @@
     .headerRow{ display:flex; align-items:flex-start; justify-content: space-between; gap: 10px; }
     .tinyBtn{ padding: 10px 10px; font-size: 13px; }
 
-    /* ===== Settings modal ===== */
+    /* ===== Settings modal (now only Import/Export) ===== */
     .overlay{
       position: fixed;
       inset: 0;
@@ -356,7 +356,7 @@
       box-shadow: var(--shadow);
       overflow: hidden;
 
-      height: min(78vh, 700px);
+      height: min(64vh, 520px);
 
       display:flex;
       flex-direction: column;
@@ -369,31 +369,6 @@
       justify-content: space-between;
       gap: 10px;
       flex: 0 0 auto;
-    }
-
-    .segTabs{
-      margin: 10px 12px 0;
-      border: 1px solid var(--border);
-      background: var(--card2);
-      border-radius: 14px;
-      overflow: hidden;
-      display:grid;
-      grid-auto-flow: column;
-      grid-auto-columns: 1fr;
-      flex: 0 0 auto;
-    }
-    .segTabBtn{
-      border: none;
-      background: transparent;
-      padding: 10px 10px;
-      font-weight: 900;
-      font-size: 13px;
-      color: var(--muted);
-      cursor: pointer;
-    }
-    .segTabBtn.active{
-      background: var(--tabActive);
-      color: var(--text);
     }
 
     .modalBody{
@@ -413,75 +388,7 @@
       background: var(--card);
     }
 
-    .settingsPanel{ display:none; }
-    .settingsPanel.active{ display:block; }
-
-    .visList{ display:grid; gap: 10px; }
-    .visRow{
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: var(--card2);
-      padding: 12px;
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .visName{
-      font-weight: 750;
-      overflow:hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .switch{ position: relative; width: 58px; height: 34px; flex: 0 0 auto; }
-    .switch input{ opacity: 0; width: 0; height: 0; position: absolute; }
-    .slider{
-      position:absolute;
-      inset:0;
-      background: var(--accent);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      transition: .15s ease;
-    }
-    .slider::before{
-      content:"";
-      position:absolute;
-      height: 26px;
-      width: 26px;
-      left: 4px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      transition: .15s ease;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.10);
-    }
-    .switch input:checked + .slider{
-      background: rgba(34,197,94,0.18);
-      border-color: rgba(34,197,94,0.35);
-    }
-    [data-theme="dark"] .switch input:checked + .slider{
-      background: rgba(34,197,94,0.22);
-      border-color: rgba(34,197,94,0.45);
-    }
-    .switch input:checked + .slider::before{
-      transform: translateY(-50%) translateX(24px);
-    }
-
-    .visBadge{
-      font-size: 12px;
-      color: var(--muted);
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 4px 10px;
-      border-radius: 999px;
-      min-width: 86px;
-      text-align:center;
-    }
-
-    /* Toast (keep only for import) */
+    /* Import toast only */
     .toast{
       position: fixed;
       left: 50%;
@@ -521,7 +428,7 @@
       .miniBtn{ width: 100%; min-height: 38px; padding: 8px 8px; font-size: 12px; }
       .gripBtn{ min-height: 40px; padding: 10px 10px; font-size: 13px; }
       .toast{ bottom: 92px; }
-      .modal{ height: min(82vh, 720px); }
+      .modal{ height: min(72vh, 560px); }
     }
   </style>
 </head>
@@ -534,7 +441,7 @@
         <div class="muted" id="subtitle">Press Spin on the wheel. Toggle section visibility in settings. Autosaves.</div>
       </div>
       <div class="row" style="justify-content:flex-end;">
-        <button class="tinyBtn" id="settingsBtn" title="Settings">⚙️</button>
+        <button class="tinyBtn" id="settingsBtn" title="Import/Export">⚙️</button>
         <button class="tinyBtn" id="themeToggle" title="Theme: Light ↔ Dark">🌓</button>
       </div>
     </div>
@@ -546,34 +453,21 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- Settings Modal -->
+  <!-- Import/Export Modal -->
   <div class="overlay" id="settingsOverlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Import/Export">
       <div class="modalHeader">
-        <strong>Settings</strong>
+        <strong>Import / Export</strong>
         <button id="closeSettings" class="tinyBtn" type="button">✕</button>
       </div>
 
-      <div class="segTabs" role="tablist" aria-label="Settings tabs">
-        <button class="segTabBtn" id="settingsTab-visibility" type="button">Visibility</button>
-        <button class="segTabBtn" id="settingsTab-transfer" type="button">Import/Export</button>
-      </div>
-
       <div class="modalBody">
-        <div id="settingsPanel-visibility" class="settingsPanel">
-          <div class="muted">Toggle sections on/off. (Off = hidden from tabs + wheel)</div>
-          <div id="sectionSettings" class="visList" style="margin-top:10px;"></div>
-        </div>
-
-        <div id="settingsPanel-transfer" class="settingsPanel">
-          <div class="card" style="padding:12px;">
-            <div class="row" style="justify-content:flex-start;">
-              <button id="exportCsvBtn" type="button">Export CSV</button>
-              <button id="importBtn" type="button">Import CSV</button>
-              <span class="pill">CSV</span>
-            </div>
-            <input id="importFile" type="file" accept=".csv" style="display:none;" />
+        <div class="card" style="padding:12px;">
+          <div class="row" style="justify-content:flex-start;">
+            <button id="exportCsvBtn" type="button">Export CSV</button>
+            <button id="importBtn" type="button">Import CSV</button>
           </div>
+          <input id="importFile" type="file" accept=".csv" style="display:none;" />
         </div>
       </div>
 
@@ -584,7 +478,7 @@
   </div>
 
   <script>
-    const KEY = "name_slot_app_v11_only_import_toast";
+    const KEY = "name_slot_app_v12_export_only_settings";
     const state = JSON.parse(localStorage.getItem(KEY) || "{}");
 
     let themeMode = (state.themeMode === "light" || state.themeMode === "dark") ? state.themeMode : "dark";
@@ -658,7 +552,7 @@
       return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    // Toast (IMPORT ONLY)
+    // Import toast only
     let toastTimer = null;
     function showImportToast(){
       const el = $("toast");
@@ -1190,7 +1084,6 @@
 
       const csv = rows.map(r => r.map(esc).join(",")).join("\n");
       downloadFile("name-slot-export.csv", csv, "text/csv");
-      // no toast for export
     }
 
     function importFromCSV(raw){
@@ -1300,14 +1193,12 @@
       updateCombo();
     }
 
-    // Settings modal
+    // Import/Export modal
     const overlay = $("settingsOverlay");
     const settingsBtn = $("settingsBtn");
     const closeSettingsBtn = $("closeSettings");
 
     function openSettings(){
-      renderSettingsUI();
-      setSettingsTab(settingsTab);
       overlay.classList.add("open");
       overlay.setAttribute("aria-hidden","false");
     }
@@ -1321,75 +1212,8 @@
       if (e.target === overlay) closeSettings();
     });
 
-    function renderSettingsUI(){
-      const wrap = $("sectionSettings");
-      wrap.innerHTML = "";
+    $("saveSettings").onclick = () => closeSettings();
 
-      sections.forEach(sec => {
-        const row = document.createElement("div");
-        row.className = "visRow";
-
-        const enabledId = `sec-enabled-${sec.id}`;
-
-        row.innerHTML = `
-          <div style="min-width:0; display:grid; gap:6px;">
-            <div class="visName">${escapeHtml(sec.label)}</div>
-            <div class="muted" style="font-size:12px;">${sec.enabled ? "Visible" : "Hidden"}</div>
-          </div>
-
-          <div style="display:flex; gap:10px; align-items:center;">
-            <div class="visBadge" id="badge-${sec.id}">${sec.enabled ? "ON" : "OFF"}</div>
-            <label class="switch" title="Visibility">
-              <input id="${enabledId}" type="checkbox" ${sec.enabled ? "checked":""} />
-              <span class="slider"></span>
-            </label>
-          </div>
-        `;
-        wrap.appendChild(row);
-
-        const cb = row.querySelector(`#${CSS.escape(enabledId)}`);
-        const badge = row.querySelector(`#badge-${CSS.escape(sec.id)}`);
-        const mutedLine = row.querySelector(".muted");
-        cb.addEventListener("change", () => {
-          badge.textContent = cb.checked ? "ON" : "OFF";
-          mutedLine.textContent = cb.checked ? "Visible" : "Hidden";
-        });
-      });
-    }
-
-    let settingsTab = "visibility";
-    function setSettingsTab(tab){
-      settingsTab = tab;
-
-      $("settingsTab-visibility").classList.toggle("active", tab === "visibility");
-      $("settingsTab-transfer").classList.toggle("active", tab === "transfer");
-
-      $("settingsPanel-visibility").classList.toggle("active", tab === "visibility");
-      $("settingsPanel-transfer").classList.toggle("active", tab === "transfer");
-    }
-
-    $("settingsTab-visibility").onclick = () => setSettingsTab("visibility");
-    $("settingsTab-transfer").onclick = () => setSettingsTab("transfer");
-
-    $("saveSettings").onclick = () => {
-      sections = sections.map(sec => {
-        const enabledEl = document.getElementById(`sec-enabled-${sec.id}`);
-        const nextEnabled = !!(enabledEl && enabledEl.checked);
-        return { ...sec, enabled: nextEnabled };
-      });
-
-      save();
-      closeSettings();
-      renderAll();
-
-      if (currentTab !== "wheel") {
-        const ok = enabledSections().some(s => s.id === currentTab);
-        if (!ok) setTab("wheel");
-      }
-      // no toast on Done
-    };
-
-    // Transfer buttons
     $("exportCsvBtn").onclick = () => exportCSV();
 
     $("importBtn").onclick = () => {
@@ -1405,10 +1229,7 @@
       const reader = new FileReader();
       reader.onload = () => {
         const ok = importFromCSV(String(reader.result || ""));
-        if (!ok) {
-          // keep it simple; no toast spam
-          alert("Import failed. Please choose a valid CSV export from this app.");
-        }
+        if (!ok) alert("Import failed. Please choose a valid CSV export from this app.");
       };
       reader.readAsText(file);
     });
