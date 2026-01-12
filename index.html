@@ -20,13 +20,15 @@
       --shadow: 0 10px 24px rgba(0,0,0,0.10);
 
       --danger:#ff3b30;
-      --dangerBorder:#f0b3b3;
       --outline:#bdbdbd;
 
       --tabActive: rgba(0,0,0,0.06);
       --menuHover: rgba(0,0,0,0.06);
 
       --accent: rgba(0,0,0,0.10);
+
+      --toastBg: rgba(0,0,0,0.75);
+      --toastText: #ffffff;
     }
 
     [data-theme="dark"]{
@@ -44,13 +46,15 @@
       --shadow: 0 10px 24px rgba(0,0,0,0.55);
 
       --danger:#ff5a52;
-      --dangerBorder:#5a1f1f;
       --outline:#3a3a3a;
 
       --tabActive: rgba(255,255,255,0.10);
       --menuHover: rgba(255,255,255,0.10);
 
       --accent: rgba(255,255,255,0.14);
+
+      --toastBg: rgba(255,255,255,0.14);
+      --toastText: #ffffff;
     }
 
     * { box-sizing: border-box; }
@@ -216,18 +220,8 @@
     .menuItem.danger{ color: var(--danger); }
 
     /* ===== Wheel ===== */
-    .spinAllWrap{
-      display:flex;
-      justify-content:center;
-      margin-bottom: 10px;
-    }
-    .spinTopRow{
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content:center;
-      width: 100%;
-    }
+    .spinAllWrap{ display:flex; justify-content:center; margin-bottom: 10px; }
+    .spinTopRow{ display:flex; gap: 10px; flex-wrap: wrap; justify-content:center; width: 100%; }
     .spinAllBtn{
       min-width: 160px;
       padding: 12px 18px;
@@ -237,11 +231,7 @@
       background: var(--btn);
       color: var(--text);
     }
-    .spinTopBtn{
-      padding: 12px 14px;
-      font-weight: 750;
-      border-radius: 14px;
-    }
+    .spinTopBtn{ padding: 12px 14px; font-weight: 750; border-radius: 14px; }
 
     .wheelGrid{
       display:grid;
@@ -252,13 +242,7 @@
       max-width: 900px;
     }
 
-    .slotCol{
-      display:flex;
-      flex-direction:column;
-      gap: 10px;
-      width: 100%;
-    }
-
+    .slotCol{ display:flex; flex-direction:column; gap: 10px; width: 100%; }
     .slotTitle{ text-align:center; }
 
     .slot{
@@ -278,12 +262,7 @@
     }
     .slot.clickable{ cursor: pointer; }
 
-    /* Controls under each slot */
-    .slotControls{
-      display:flex;
-      gap: 8px;
-      width: 100%;
-    }
+    .slotControls{ display:flex; gap: 8px; width: 100%; }
     .miniBtn{
       flex: 1 1 auto;
       padding: 10px 10px;
@@ -312,19 +291,9 @@
       gap: 8px;
       min-height: 48px;
     }
-    .gripBtn .mutedSmall{
-      font-weight: 700;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .gripBtn.on{
-      border-color: rgba(255,90,82,0.35);
-      background: rgba(255,90,82,0.10);
-    }
-    [data-theme="dark"] .gripBtn.on{
-      border-color: rgba(255,90,82,0.40);
-      background: rgba(255,90,82,0.12);
-    }
+    .gripBtn .mutedSmall{ font-weight: 700; color: var(--muted); font-size: 13px; }
+    .gripBtn.on{ border-color: rgba(255,90,82,0.35); background: rgba(255,90,82,0.10); }
+    [data-theme="dark"] .gripBtn.on{ border-color: rgba(255,90,82,0.40); background: rgba(255,90,82,0.12); }
 
     .comboBig{
       margin-top: 12px;
@@ -362,16 +331,8 @@
     .tabBtn strong{ display:block; font-size: 12px; color: var(--text); }
     .tabBtn.active{ background: var(--tabActive); }
 
-    .headerRow{
-      display:flex;
-      align-items:flex-start;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .tinyBtn{
-      padding: 10px 10px;
-      font-size: 13px;
-    }
+    .headerRow{ display:flex; align-items:flex-start; justify-content: space-between; gap: 10px; }
+    .tinyBtn{ padding: 10px 10px; font-size: 13px; }
 
     /* ===== Settings modal ===== */
     .overlay{
@@ -379,12 +340,13 @@
       inset: 0;
       background: rgba(0,0,0,0.45);
       display:none;
-      align-items: flex-end;
+      align-items: center;
       justify-content: center;
       z-index: 50;
       padding: 14px;
     }
     .overlay.open{ display:flex; }
+
     .modal{
       width: 100%;
       max-width: 760px;
@@ -393,6 +355,11 @@
       border-radius: 16px;
       box-shadow: var(--shadow);
       overflow: hidden;
+
+      height: min(78vh, 700px);
+
+      display:flex;
+      flex-direction: column;
     }
     .modalHeader{
       padding: 12px 12px;
@@ -401,11 +368,38 @@
       align-items:center;
       justify-content: space-between;
       gap: 10px;
+      flex: 0 0 auto;
     }
+
+    .segTabs{
+      margin: 10px 12px 0;
+      border: 1px solid var(--border);
+      background: var(--card2);
+      border-radius: 14px;
+      overflow: hidden;
+      display:grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      flex: 0 0 auto;
+    }
+    .segTabBtn{
+      border: none;
+      background: transparent;
+      padding: 10px 10px;
+      font-weight: 900;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .segTabBtn.active{
+      background: var(--tabActive);
+      color: var(--text);
+    }
+
     .modalBody{
       padding: 12px;
-      display:grid;
-      gap: 10px;
+      overflow: auto;
+      flex: 1 1 auto;
     }
     .modalFooter{
       padding: 12px;
@@ -415,9 +409,13 @@
       gap: 8px;
       flex-wrap:wrap;
       align-items:center;
+      flex: 0 0 auto;
+      background: var(--card);
     }
 
-    /* Settings rows: visibility only */
+    .settingsPanel{ display:none; }
+    .settingsPanel.active{ display:block; }
+
     .visList{ display:grid; gap: 10px; }
     .visRow{
       border: 1px solid var(--border);
@@ -436,19 +434,8 @@
       white-space: nowrap;
     }
 
-    /* Big, obvious toggle */
-    .switch{
-      position: relative;
-      width: 58px;
-      height: 34px;
-      flex: 0 0 auto;
-    }
-    .switch input{
-      opacity: 0;
-      width: 0;
-      height: 0;
-      position: absolute;
-    }
+    .switch{ position: relative; width: 58px; height: 34px; flex: 0 0 auto; }
+    .switch input{ opacity: 0; width: 0; height: 0; position: absolute; }
     .slider{
       position:absolute;
       inset:0;
@@ -494,7 +481,31 @@
       text-align:center;
     }
 
-    /* === Mobile: force 3 columns to fit screen === */
+    /* Toast (keep only for import) */
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 84px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--toastBg);
+      color: var(--toastText);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 80;
+      max-width: calc(100vw - 28px);
+      text-align:center;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
     @media (max-width: 680px){
       .wheelGrid{
         display: grid;
@@ -503,41 +514,14 @@
         justify-content: stretch;
         max-width: 100%;
       }
-
-      .slotCol{
-        width: auto;
-        gap: 8px;
-        min-width: 0;
-      }
-
-      .slot{
-        padding: 10px;
-        min-height: 56px;
-        font-size: 16px;
-      }
-
-      .slotTitle{
-        font-size: 12px;
-      }
-
-      /* stack small buttons vertically to save width */
-      .slotControls{
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .miniBtn{
-        width: 100%;
-        min-height: 38px;
-        padding: 8px 8px;
-        font-size: 12px;
-      }
-
-      .gripBtn{
-        min-height: 40px;
-        padding: 10px 10px;
-        font-size: 13px;
-      }
+      .slotCol{ width: auto; gap: 8px; min-width: 0; }
+      .slot{ padding: 10px; min-height: 56px; font-size: 16px; }
+      .slotTitle{ font-size: 12px; }
+      .slotControls{ flex-direction: column; gap: 6px; }
+      .miniBtn{ width: 100%; min-height: 38px; padding: 8px 8px; font-size: 12px; }
+      .gripBtn{ min-height: 40px; padding: 10px 10px; font-size: 13px; }
+      .toast{ bottom: 92px; }
+      .modal{ height: min(82vh, 720px); }
     }
   </style>
 </head>
@@ -560,17 +544,37 @@
 
   <nav class="tabs" id="tabs" aria-label="Bottom tabs"></nav>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <!-- Settings Modal -->
   <div class="overlay" id="settingsOverlay" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
       <div class="modalHeader">
-        <strong>Visibility</strong>
+        <strong>Settings</strong>
         <button id="closeSettings" class="tinyBtn" type="button">✕</button>
       </div>
 
+      <div class="segTabs" role="tablist" aria-label="Settings tabs">
+        <button class="segTabBtn" id="settingsTab-visibility" type="button">Visibility</button>
+        <button class="segTabBtn" id="settingsTab-transfer" type="button">Import/Export</button>
+      </div>
+
       <div class="modalBody">
-        <div class="muted">Toggle sections on/off. (Off = hidden from tabs + wheel)</div>
-        <div id="sectionSettings" class="visList"></div>
+        <div id="settingsPanel-visibility" class="settingsPanel">
+          <div class="muted">Toggle sections on/off. (Off = hidden from tabs + wheel)</div>
+          <div id="sectionSettings" class="visList" style="margin-top:10px;"></div>
+        </div>
+
+        <div id="settingsPanel-transfer" class="settingsPanel">
+          <div class="card" style="padding:12px;">
+            <div class="row" style="justify-content:flex-start;">
+              <button id="exportCsvBtn" type="button">Export CSV</button>
+              <button id="importBtn" type="button">Import CSV</button>
+              <span class="pill">CSV</span>
+            </div>
+            <input id="importFile" type="file" accept=".csv" style="display:none;" />
+          </div>
+        </div>
       </div>
 
       <div class="modalFooter">
@@ -580,7 +584,7 @@
   </div>
 
   <script>
-    const KEY = "name_slot_app_v6_dark_norepeat";
+    const KEY = "name_slot_app_v11_only_import_toast";
     const state = JSON.parse(localStorage.getItem(KEY) || "{}");
 
     let themeMode = (state.themeMode === "light" || state.themeMode === "dark") ? state.themeMode : "dark";
@@ -597,7 +601,7 @@
           .map(s => ({
             id: String(s.id || makeId()),
             label: normalizeInput(String(s.label ?? "Section")) || "Section",
-            enabled: !!s.enabled,
+            enabled: (typeof s.enabled === "boolean") ? s.enabled : true,
             items: Array.isArray(s.items) ? s.items : []
           }));
       }
@@ -616,12 +620,10 @@
     let sections = migrateSections(state);
     let favorites = Array.isArray(state.favorites) ? state.favorites : [];
 
-    // wheel current (persisted)
     const wheelStateFromStorage = (state.wheelState && typeof state.wheelState === "object") ? state.wheelState : {};
     const current = (wheelStateFromStorage.current && typeof wheelStateFromStorage.current === "object") ? wheelStateFromStorage.current : {};
     const grip = (wheelStateFromStorage.grip && typeof wheelStateFromStorage.grip === "object") ? wheelStateFromStorage.grip : {};
 
-    // ensure keys exist
     sections.forEach(s => { if (!(s.id in current)) current[s.id] = ""; });
     sections.forEach(s => { if (!(s.id in grip)) grip[s.id] = false; });
 
@@ -656,7 +658,18 @@
       return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    // ===== Menus =====
+    // Toast (IMPORT ONLY)
+    let toastTimer = null;
+    function showImportToast(){
+      const el = $("toast");
+      if (!el) return;
+      el.textContent = "Imported ✅";
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("show"), 1600);
+    }
+
+    // Menus
     let openMenuEl = null;
     function closeOpenMenu() {
       if (openMenuEl) { openMenuEl.classList.remove("open"); openMenuEl = null; }
@@ -666,7 +679,7 @@
       if (!insideMenu) closeOpenMenu();
     });
 
-    // ===== Drag reorder (items only) =====
+    // Drag reorder
     function attachReorderHandlers(containerEl, listRef) {
       let draggingIdx = null;
       let overIdx = null;
@@ -720,7 +733,7 @@
       });
     }
 
-    // ===== Render list items =====
+    // List render
     function promptEdit(oldValue) {
       const next = normalizeInput(prompt("Edit item:", oldValue) || "");
       return next ? next : null;
@@ -797,7 +810,7 @@
       });
     }
 
-    // ===== Favorites =====
+    // Favorites
     function renderFavs(containerEl) {
       containerEl.innerHTML = "";
 
@@ -867,11 +880,9 @@
       });
     }
 
-    function enabledSections() {
-      return sections.filter(s => s.enabled);
-    }
+    function enabledSections() { return sections.filter(s => s.enabled); }
 
-    // ===== UI building =====
+    // UI building
     const panelsByTab = {};
     function escapeHtml(str){
       return String(str)
@@ -891,7 +902,6 @@
         const panel = document.createElement("section");
         panel.className = "panel";
         panel.id = `panel-${sec.id}`;
-
         panel.innerHTML = `
           <div class="card">
             <div class="row">
@@ -913,7 +923,7 @@
         <div class="card">
           <div class="spinAllWrap">
             <div class="spinTopRow">
-              <button id="spin-all" class="spinAllBtn">🎰 Spin</button>
+              <button id="spin-all" class="spinAllBtn">🎲 Spin</button>
               <button id="clear-all" class="spinTopBtn" title="Clear current wheel values">🧹 Clear all</button>
               <button id="save-fav-top" class="spinTopBtn" title="Save current combo to favorites">⭐ Favorite</button>
             </div>
@@ -965,7 +975,6 @@
     }
 
     let currentTab = "wheel";
-
     function setTab(tab) {
       closeOpenMenu();
       currentTab = tab;
@@ -982,12 +991,12 @@
         title.textContent = sec.label;
         subtitle.textContent = "Add items one at a time. Drag by ≡ to reorder. Tap ⋮ for options. Autosaves.";
       } else {
-        title.textContent = "Slot wheel";
+        title.textContent = "Slot Wheel";
         subtitle.textContent = "Press Spin. Grip freezes a section. Use small Spin/Clear under each slot. Autosaves.";
       }
     }
 
-    // ===== Wheel =====
+    // Wheel
     function updateCounts() {
       enabledSections().forEach(sec => {
         const el = document.getElementById(`count-${sec.id}`);
@@ -1042,7 +1051,7 @@
     function spinSection(secId){
       const sec = enabledSections().find(s => s.id === secId);
       if (!sec) return;
-      if (grip[secId]) return; // frozen
+      if (grip[secId]) return;
       current[secId] = pickRandomDifferent(sec.items, current[secId]);
       updateCombo();
     }
@@ -1055,7 +1064,7 @@
 
     function spinAll() {
       enabledSections().forEach(sec => {
-        if (grip[sec.id]) return; // frozen
+        if (grip[sec.id]) return;
         current[sec.id] = pickRandomDifferent(sec.items, current[sec.id]);
       });
       updateCombo();
@@ -1095,7 +1104,7 @@
 
           <div class="slotControls">
             <button class="miniBtn" id="mini-spin-${sec.id}" type="button">🎲 Spin</button>
-            <button class="miniBtn" id="mini-clear-${sec.id}" type="button">🧽 Clear</button>
+            <button class="miniBtn" id="mini-clear-${sec.id}" type="button">🧹 Clear</button>
           </div>
 
           <button class="gripBtn" id="grip-${sec.id}" type="button" aria-pressed="false">🧲 Grip</button>
@@ -1123,7 +1132,7 @@
       if (favTop) favTop.onclick = saveFavoriteFromTop;
     }
 
-    // ===== Editor wiring =====
+    // Add item
     function addToSection(secId) {
       const sec = sections.find(s => s.id === secId);
       const input = document.getElementById(`input-${secId}`);
@@ -1140,9 +1149,115 @@
       renderAll();
     }
 
-    // ===== Render all =====
+    // CSV export/import
+    function downloadFile(filename, content, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCSV() {
+      const cols = sections.map(s => s.label);
+      cols.push("Favorites");
+
+      const maxLen = Math.max(
+        0,
+        ...sections.map(s => (s.items || []).length),
+        (favorites || []).length
+      );
+
+      const rows = [];
+      rows.push(cols);
+
+      for (let i = 0; i < maxLen; i++) {
+        const row = [];
+        sections.forEach(sec => row.push((sec.items && sec.items[i]) ? String(sec.items[i]) : ""));
+        row.push((favorites && favorites[i]) ? String(favorites[i]) : "");
+        rows.push(row);
+      }
+
+      const esc = (s) => {
+        const str = String(s ?? "");
+        if (/[",\n\r]/.test(str)) return `"${str.replaceAll('"', '""')}"`;
+        return str;
+      };
+
+      const csv = rows.map(r => r.map(esc).join(",")).join("\n");
+      downloadFile("name-slot-export.csv", csv, "text/csv");
+      // no toast for export
+    }
+
+    function importFromCSV(raw){
+      const lines = String(raw || "").split(/\r?\n/).filter(line => line.trim().length);
+      if (!lines.length) return false;
+
+      const parseCSVLine = (line) => {
+        const out = [];
+        let cur = "";
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') {
+            if (inQuotes && line[i+1] === '"') { cur += '"'; i++; }
+            else inQuotes = !inQuotes;
+          } else if (ch === "," && !inQuotes) {
+            out.push(cur);
+            cur = "";
+          } else {
+            cur += ch;
+          }
+        }
+        out.push(cur);
+        return out.map(s => s.trim());
+      };
+
+      const header = parseCSVLine(lines[0]).map(h => normalizeInput(h));
+      if (!header.length) return false;
+
+      sections.forEach(sec => sec.items = []);
+      favorites = [];
+
+      const colTargets = header.map(colName => {
+        if (!colName) return { type: "ignore" };
+        if (colName.toLowerCase() === "favorites") return { type: "favorites" };
+        const sec = sections.find(s => s.label.toLowerCase() === colName.toLowerCase());
+        if (sec) return { type: "section", id: sec.id };
+        return { type: "ignore" };
+      });
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCSVLine(lines[i]);
+        for (let c = 0; c < colTargets.length; c++) {
+          const t = colTargets[c];
+          const v = normalizeInput(cols[c] ?? "");
+          if (!v) continue;
+
+          if (t.type === "favorites") {
+            if (!favorites.includes(v)) favorites.push(v);
+          } else if (t.type === "section") {
+            const sec = sections.find(s => s.id === t.id);
+            if (!sec) continue;
+            const exists = sec.items.some(x => String(x).toLowerCase() === v.toLowerCase());
+            if (!exists) sec.items.push(v);
+          }
+        }
+      }
+
+      save();
+      renderAll();
+      setTab("wheel");
+      showImportToast();
+      return true;
+    }
+
+    // Render all
     function renderAll() {
-      // ensure keys exist
       sections.forEach(s => { if (!(s.id in current)) current[s.id] = ""; });
       sections.forEach(s => { if (!(s.id in grip)) grip[s.id] = false; });
 
@@ -1185,13 +1300,14 @@
       updateCombo();
     }
 
-    // ===== Settings modal (visibility only) =====
+    // Settings modal
     const overlay = $("settingsOverlay");
     const settingsBtn = $("settingsBtn");
     const closeSettingsBtn = $("closeSettings");
 
     function openSettings(){
       renderSettingsUI();
+      setSettingsTab(settingsTab);
       overlay.classList.add("open");
       overlay.setAttribute("aria-hidden","false");
     }
@@ -1231,7 +1347,6 @@
         `;
         wrap.appendChild(row);
 
-        // live update badge text while toggling
         const cb = row.querySelector(`#${CSS.escape(enabledId)}`);
         const badge = row.querySelector(`#badge-${CSS.escape(sec.id)}`);
         const mutedLine = row.querySelector(".muted");
@@ -1242,8 +1357,21 @@
       });
     }
 
+    let settingsTab = "visibility";
+    function setSettingsTab(tab){
+      settingsTab = tab;
+
+      $("settingsTab-visibility").classList.toggle("active", tab === "visibility");
+      $("settingsTab-transfer").classList.toggle("active", tab === "transfer");
+
+      $("settingsPanel-visibility").classList.toggle("active", tab === "visibility");
+      $("settingsPanel-transfer").classList.toggle("active", tab === "transfer");
+    }
+
+    $("settingsTab-visibility").onclick = () => setSettingsTab("visibility");
+    $("settingsTab-transfer").onclick = () => setSettingsTab("transfer");
+
     $("saveSettings").onclick = () => {
-      // apply toggles only
       sections = sections.map(sec => {
         const enabledEl = document.getElementById(`sec-enabled-${sec.id}`);
         const nextEnabled = !!(enabledEl && enabledEl.checked);
@@ -1258,9 +1386,34 @@
         const ok = enabledSections().some(s => s.id === currentTab);
         if (!ok) setTab("wheel");
       }
+      // no toast on Done
     };
 
-    // ===== Init =====
+    // Transfer buttons
+    $("exportCsvBtn").onclick = () => exportCSV();
+
+    $("importBtn").onclick = () => {
+      const input = $("importFile");
+      input.value = "";
+      input.click();
+    };
+
+    $("importFile").addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const ok = importFromCSV(String(reader.result || ""));
+        if (!ok) {
+          // keep it simple; no toast spam
+          alert("Import failed. Please choose a valid CSV export from this app.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Init
     $("themeToggle").onclick = toggleTheme;
 
     applyTheme();
