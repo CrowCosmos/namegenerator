@@ -6,38 +6,51 @@
   <title>Name Slot Machine</title>
   <style>
     :root{
-      --bg:#ffffff;
-      --text:#111111;
-      --muted:#666666;
+      --bg:#f3f4f6;
+      --text:#2e2e2e;
+      --muted:#6b7280;
+
       --card:#ffffff;
-      --card2:#fafafa;
-      --border:#e4e4e4;
+      --card2:#f8fafc;
+      --border:#d7dce3;
+
       --btn:#ffffff;
-      --btnBorder:#cfcfcf;
+      --btnBorder:#c9ced6;
+
       --shadow: 0 10px 24px rgba(0,0,0,0.10);
+
       --danger:#ff3b30;
       --dangerBorder:#f0b3b3;
       --outline:#bdbdbd;
+
       --tabActive: rgba(0,0,0,0.06);
       --menuHover: rgba(0,0,0,0.06);
+
+      --accent: rgba(0,0,0,0.10);
     }
 
-    /* Dark = actually black-forward (not navy) */
     [data-theme="dark"]{
       --bg:#000000;
       --text:#f2f2f2;
       --muted:#a6a6a6;
+
       --card:#0b0b0b;
       --card2:#111111;
       --border:#242424;
+
       --btn:#0b0b0b;
       --btnBorder:#2a2a2a;
+
       --shadow: 0 10px 24px rgba(0,0,0,0.55);
+
       --danger:#ff5a52;
       --dangerBorder:#5a1f1f;
       --outline:#3a3a3a;
+
       --tabActive: rgba(255,255,255,0.10);
       --menuHover: rgba(255,255,255,0.10);
+
+      --accent: rgba(255,255,255,0.14);
     }
 
     * { box-sizing: border-box; }
@@ -105,9 +118,10 @@
       font-size: 12px;
       color: var(--muted);
       background: var(--card2);
+      white-space: nowrap;
     }
 
-    /* ===== Lists (shared) ===== */
+    /* ===== Lists ===== */
     .list{ margin-top: 12px; display:grid; gap: 10px; }
 
     .item{
@@ -120,7 +134,7 @@
       padding: 10px 10px;
       background: var(--card2);
       user-select: none;
-      touch-action: none; /* for drag */
+      touch-action: none;
       position: relative;
     }
     .item.dragging{
@@ -201,16 +215,39 @@
     .menuItem.danger{ color: var(--danger); }
 
     /* ===== Wheel ===== */
-    .wheelGrid{ display:grid; gap: 10px; }
-    @media (max-width: 899px){
-      .wheelGrid{ grid-template-columns: 1fr 1fr 1fr; }
-      .slot{ font-size: 16px; padding: 12px; min-height: 64px; text-align: center; }
-      .wheelGrid strong{ font-size: 13px; }
-      .wheelGrid button{ padding: 10px 10px; font-size: 13px; }
+    .spinAllWrap{
+      display:flex;
+      justify-content:center;
+      margin-bottom: 10px;
     }
-    @media (min-width: 900px){
-      .wheelGrid{ grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .spinAllBtn{
+      min-width: 160px;
+      padding: 12px 18px;
+      font-weight: 700;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--btn);
+      color: var(--text);
     }
+
+    .wheelGrid{
+      display:grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+      justify-content: center;
+      margin: 0 auto;
+      max-width: 900px;
+    }
+
+    .slotCol{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .slotTitle{ text-align:center; }
+
     .slot{
       border-radius: 16px;
       border: 1px solid var(--border);
@@ -223,6 +260,36 @@
       font-size: 22px;
       font-weight: 800;
       letter-spacing: .2px;
+      text-align:center;
+      user-select: none;
+    }
+    .slot.clickable{ cursor: pointer; }
+
+    /* Grip button (under each slot) */
+    .gripBtn{
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--btn);
+      padding: 12px 14px;
+      font-weight: 700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+    }
+    .gripBtn .mutedSmall{
+      font-weight: 650;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .gripBtn.on{
+      border-color: rgba(255,90,82,0.35);
+      background: rgba(255,90,82,0.10);
+    }
+    [data-theme="dark"] .gripBtn.on{
+      border-color: rgba(255,90,82,0.40);
+      background: rgba(255,90,82,0.12);
     }
 
     .comboBig{
@@ -246,7 +313,8 @@
       border-top: 1px solid var(--border);
       background: var(--card);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
       z-index: 20;
     }
     .tabBtn{
@@ -270,148 +338,225 @@
       padding: 10px 10px;
       font-size: 13px;
     }
+
+    /* ===== Settings modal ===== */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display:none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 50;
+      padding: 14px;
+    }
+    .overlay.open{ display:flex; }
+    .modal{
+      width: 100%;
+      max-width: 760px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .modalHeader{
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .modalBody{
+      padding: 12px;
+      display:grid;
+      gap: 10px;
+    }
+    .modalFooter{
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      display:flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    /* Settings rows: visibility only */
+    .visList{ display:grid; gap: 10px; }
+    .visRow{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card2);
+      padding: 12px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .visName{
+      font-weight: 750;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Big, obvious toggle */
+    .switch{
+      position: relative;
+      width: 58px;
+      height: 34px;
+      flex: 0 0 auto;
+    }
+    .switch input{
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    .slider{
+      position:absolute;
+      inset:0;
+      background: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: .15s ease;
+    }
+    .slider::before{
+      content:"";
+      position:absolute;
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: .15s ease;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.10);
+    }
+    .switch input:checked + .slider{
+      background: rgba(34,197,94,0.18); /* soft green tint */
+      border-color: rgba(34,197,94,0.35);
+    }
+    [data-theme="dark"] .switch input:checked + .slider{
+      background: rgba(34,197,94,0.22);
+      border-color: rgba(34,197,94,0.45);
+    }
+    .switch input:checked + .slider::before{
+      transform: translateY(-50%) translateX(24px);
+    }
+
+    .visBadge{
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 999px;
+      min-width: 86px;
+      text-align:center;
+    }
   </style>
 </head>
+
 <body>
   <header>
     <div class="headerRow">
       <div>
-        <h1 id="title">First names</h1>
-        <div class="muted" id="subtitle">Add names one at a time. Drag by ≡ to reorder. Tap ⋮ for options. Autosaves.</div>
+        <h1 id="title">Names</h1>
+        <div class="muted" id="subtitle">Press Spin on the wheel. Toggle section visibility in settings. Autosaves.</div>
       </div>
       <div class="row" style="justify-content:flex-end;">
+        <button class="tinyBtn" id="settingsBtn" title="Settings">⚙️</button>
         <button class="tinyBtn" id="themeToggle" title="Theme: Light ↔ Dark">🌓</button>
       </div>
     </div>
   </header>
 
-  <main>
-    <!-- First -->
-    <section class="panel active" id="panel-first">
-      <div class="card">
-        <div class="row">
-          <input id="input-first" type="text" placeholder="Add a first name…" autocomplete="off" />
-          <button id="add-first">Add</button>
-          <span class="pill" id="count-first">0</span>
-        </div>
-        <div class="list" id="list-first"></div>
-      </div>
-    </section>
+  <main id="main"></main>
 
-    <!-- Middle -->
-    <section class="panel" id="panel-middle">
-      <div class="card">
-        <div class="row">
-          <input id="input-middle" type="text" placeholder="Add a middle name / modifier…" autocomplete="off" />
-          <button id="add-middle">Add</button>
-          <span class="pill" id="count-middle">0</span>
-        </div>
-        <div class="list" id="list-middle"></div>
-      </div>
-    </section>
+  <nav class="tabs" id="tabs" aria-label="Bottom tabs"></nav>
 
-    <!-- Last -->
-    <section class="panel" id="panel-last">
-      <div class="card">
-        <div class="row">
-          <input id="input-last" type="text" placeholder="Add a last name…" autocomplete="off" />
-          <button id="add-last">Add</button>
-          <span class="pill" id="count-last">0</span>
-        </div>
-        <div class="list" id="list-last"></div>
-      </div>
-    </section>
-
-    <!-- Wheel -->
-    <section class="panel" id="panel-wheel">
-      <div class="card">
-        <div class="row" style="margin-bottom:10px;">
-          <button id="spin-all">🎰 Spin ALL</button>
-          <button id="save-fav-top">⭐ Save favorite</button>
-          <span class="pill" id="counts-pill">Items: 0 • 0 • 0</span>
-        </div>
-
-        <div class="wheelGrid">
-          <div>
-            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
-              <strong>First</strong>
-              <button id="spin-first">Spin</button>
-            </div>
-            <div class="slot" id="slot-first">—</div>
-          </div>
-
-          <div>
-            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
-              <strong>Middle</strong>
-              <button id="spin-middle">Spin</button>
-            </div>
-            <div class="slot" id="slot-middle">—</div>
-          </div>
-
-          <div>
-            <div class="row" style="justify-content:space-between; margin-bottom:8px;">
-              <strong>Last</strong>
-              <button id="spin-last">Spin</button>
-            </div>
-            <div class="slot" id="slot-last">—</div>
-          </div>
-        </div>
-
-        <div class="comboBig" id="combo-text">—</div>
+  <!-- Settings Modal -->
+  <div class="overlay" id="settingsOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Settings">
+      <div class="modalHeader">
+        <strong>Visibility</strong>
+        <button id="closeSettings" class="tinyBtn" type="button">✕</button>
       </div>
 
-      <div class="card" style="margin-top:12px;">
-        <div class="row" style="justify-content:space-between;">
-          <strong>Favorites</strong>
-          <span class="pill" id="count-favs">0</span>
-        </div>
-        <div class="list" id="list-favs"></div>
+      <div class="modalBody">
+        <div class="muted">Toggle sections on/off. (Off = hidden from tabs + wheel)</div>
+        <div id="sectionSettings" class="visList"></div>
       </div>
-    </section>
-  </main>
 
-  <nav class="tabs" aria-label="Bottom tabs">
-    <button class="tabBtn active" data-tab="first"><strong>First</strong>names</button>
-    <button class="tabBtn" data-tab="middle"><strong>Middle</strong>names</button>
-    <button class="tabBtn" data-tab="last"><strong>Last</strong>names</button>
-    <button class="tabBtn" data-tab="wheel"><strong>Wheel</strong>slot</button>
-  </nav>
+      <div class="modalFooter">
+        <button id="saveSettings" type="button">Done</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // Keep the same key so you don't lose your stored names
     const KEY = "name_slot_app_v6_dark_norepeat";
     const state = JSON.parse(localStorage.getItem(KEY) || "{}");
 
-    let firstNames  = Array.isArray(state.firstNames) ? state.firstNames : [];
-    let middleNames = Array.isArray(state.middleNames) ? state.middleNames : [];
-    let lastNames   = Array.isArray(state.lastNames) ? state.lastNames : [];
-    let favorites   = Array.isArray(state.favorites) ? state.favorites : [];
+    let themeMode = (state.themeMode === "light" || state.themeMode === "dark") ? state.themeMode : "dark";
 
-    let themeMode = (state.themeMode === "light" || state.themeMode === "dark")
-      ? state.themeMode
-      : "dark";
+    function makeId() {
+      return "sec_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+    }
+    function normalizeInput(s) { return (s || "").trim().replace(/\s+/g, " "); }
 
-    const current = { first: "", middle: "", last: "" };
+    function migrateSections(oldState){
+      if (Array.isArray(oldState.sections)) {
+        return oldState.sections
+          .filter(s => s && typeof s === "object")
+          .map(s => ({
+            id: String(s.id || makeId()),
+            label: normalizeInput(String(s.label ?? "Section")) || "Section",
+            enabled: !!s.enabled,
+            items: Array.isArray(s.items) ? s.items : []
+          }));
+      }
+
+      const firstNames  = Array.isArray(oldState.firstNames) ? oldState.firstNames : [];
+      const middleNames = Array.isArray(oldState.middleNames) ? oldState.middleNames : [];
+      const lastNames   = Array.isArray(oldState.lastNames) ? oldState.lastNames : [];
+
+      return [
+        { id: "first",  label: "First",  enabled: true, items: firstNames },
+        { id: "middle", label: "Middle", enabled: true, items: middleNames },
+        { id: "last",   label: "Last",   enabled: true, items: lastNames },
+      ];
+    }
+
+    let sections = migrateSections(state);
+    let favorites = Array.isArray(state.favorites) ? state.favorites : [];
+
+    // wheel current (persisted)
+    const wheelStateFromStorage = (state.wheelState && typeof state.wheelState === "object") ? state.wheelState : {};
+    const current = (wheelStateFromStorage.current && typeof wheelStateFromStorage.current === "object") ? wheelStateFromStorage.current : {};
+    const grip = (wheelStateFromStorage.grip && typeof wheelStateFromStorage.grip === "object") ? wheelStateFromStorage.grip : {};
+
+    // ensure keys exist
+    sections.forEach(s => { if (!(s.id in current)) current[s.id] = ""; });
+    sections.forEach(s => { if (!(s.id in grip)) grip[s.id] = false; });
 
     function save() {
-      localStorage.setItem(KEY, JSON.stringify({ firstNames, middleNames, lastNames, favorites, themeMode }));
+      localStorage.setItem(KEY, JSON.stringify({
+        themeMode,
+        sections,
+        favorites,
+        wheelState: { current, grip }
+      }));
     }
 
     const $ = (id) => document.getElementById(id);
     const title = $("title");
     const subtitle = $("subtitle");
-
-    function normalizeInput(s) { return (s || "").trim().replace(/\s+/g, " "); }
-
-    function pickRandomDifferent(arr, currentValue) {
-      if (!arr.length) return "";
-      if (arr.length === 1) return arr[0];
-
-      const cur = (currentValue || "").toLowerCase();
-      const filtered = arr.filter(x => x.toLowerCase() !== cur);
-      const pool = filtered.length ? filtered : arr;
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
 
     function applyTheme() {
       document.documentElement.setAttribute("data-theme", themeMode);
@@ -422,36 +567,26 @@
       applyTheme();
     }
 
-    function updateCounts() {
-      $("count-first").textContent = firstNames.length;
-      $("count-middle").textContent = middleNames.length;
-      $("count-last").textContent = lastNames.length;
-
-      const total = firstNames.length * middleNames.length * lastNames.length;
-      $("counts-pill").textContent = `Items: ${firstNames.length} • ${middleNames.length} • ${lastNames.length} • Combos: ${total || 0}`;
-
-      $("count-favs").textContent = favorites.length;
-    }
-
-    function promptEdit(oldValue) {
-      const next = normalizeInput(prompt("Edit name:", oldValue) || "");
-      return next ? next : null;
+    function pickRandomDifferent(arr, currentValue) {
+      if (!arr.length) return "";
+      if (arr.length === 1) return arr[0];
+      const cur = (currentValue || "").toLowerCase();
+      const filtered = arr.filter(x => String(x).toLowerCase() !== cur);
+      const pool = filtered.length ? filtered : arr;
+      return pool[Math.floor(Math.random() * pool.length)];
     }
 
     // ===== Menus =====
     let openMenuEl = null;
     function closeOpenMenu() {
-      if (openMenuEl) {
-        openMenuEl.classList.remove("open");
-        openMenuEl = null;
-      }
+      if (openMenuEl) { openMenuEl.classList.remove("open"); openMenuEl = null; }
     }
     document.addEventListener("pointerdown", (e) => {
       const insideMenu = e.target.closest(".menu") || e.target.closest(".menuBtn");
       if (!insideMenu) closeOpenMenu();
     });
 
-    // ===== Drag reorder =====
+    // ===== Drag reorder (items only) =====
     function attachReorderHandlers(containerEl, listRef) {
       let draggingIdx = null;
       let overIdx = null;
@@ -470,7 +605,6 @@
 
       containerEl.addEventListener("pointermove", (e) => {
         if (draggingIdx === null) return;
-
         const el = document.elementFromPoint(e.clientX, e.clientY);
         const overItem = el ? el.closest(".item") : null;
 
@@ -506,17 +640,21 @@
       });
     }
 
-    // Lists (Edit+Delete)
-    function renderList(containerId, items, onEdit, onDelete) {
-      const container = $(containerId);
-      container.innerHTML = "";
+    // ===== Render list items =====
+    function promptEdit(oldValue) {
+      const next = normalizeInput(prompt("Edit item:", oldValue) || "");
+      return next ? next : null;
+    }
+
+    function renderList(containerEl, items, onEdit, onDelete) {
+      containerEl.innerHTML = "";
 
       if (!items.length) {
         const empty = document.createElement("div");
         empty.className = "muted";
         empty.style.padding = "10px 2px";
-        empty.textContent = "No names yet. Add one above.";
-        container.appendChild(empty);
+        empty.textContent = "No items yet. Add one above.";
+        containerEl.appendChild(empty);
         return;
       }
 
@@ -575,21 +713,20 @@
         row.appendChild(left);
         row.appendChild(menuBtn);
         row.appendChild(menu);
-        container.appendChild(row);
+        containerEl.appendChild(row);
       });
     }
 
-    // Favorites (Delete only)
-    function renderFavs() {
-      const container = $("list-favs");
-      container.innerHTML = "";
+    // ===== Favorites =====
+    function renderFavs(containerEl) {
+      containerEl.innerHTML = "";
 
       if (!favorites.length) {
         const empty = document.createElement("div");
         empty.className = "muted";
         empty.style.padding = "10px 2px";
         empty.textContent = "No favorites yet.";
-        container.appendChild(empty);
+        containerEl.appendChild(empty);
         return;
       }
 
@@ -646,126 +783,378 @@
         row.appendChild(left);
         row.appendChild(menuBtn);
         row.appendChild(menu);
-        container.appendChild(row);
+        containerEl.appendChild(row);
       });
     }
 
-    let dragAttached = false;
-    function renderAll() {
-      renderList("list-first", firstNames,
-        (i) => { const v = promptEdit(firstNames[i]); if (v) { firstNames[i]=v; save(); renderAll(); } },
-        (i) => { firstNames.splice(i,1); save(); renderAll(); }
-      );
-      renderList("list-middle", middleNames,
-        (i) => { const v = promptEdit(middleNames[i]); if (v) { middleNames[i]=v; save(); renderAll(); } },
-        (i) => { middleNames.splice(i,1); save(); renderAll(); }
-      );
-      renderList("list-last", lastNames,
-        (i) => { const v = promptEdit(lastNames[i]); if (v) { lastNames[i]=v; save(); renderAll(); } },
-        (i) => { lastNames.splice(i,1); save(); renderAll(); }
-      );
+    function enabledSections() {
+      return sections.filter(s => s.enabled);
+    }
 
-      renderFavs();
-      updateCounts();
-      updateCombo();
+    // ===== UI building =====
+    const panelsByTab = {};
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"quot;")
+        .replaceAll("'","&#039;");
+    }
 
-      if (!dragAttached) {
-        attachReorderHandlers($("list-first"), firstNames);
-        attachReorderHandlers($("list-middle"), middleNames);
-        attachReorderHandlers($("list-last"), lastNames);
-        attachReorderHandlers($("list-favs"), favorites);
-        dragAttached = true;
+    function buildPanels() {
+      const main = $("main");
+      main.innerHTML = "";
+      for (const k in panelsByTab) delete panelsByTab[k];
+
+      enabledSections().forEach(sec => {
+        const panel = document.createElement("section");
+        panel.className = "panel";
+        panel.id = `panel-${sec.id}`;
+
+        panel.innerHTML = `
+          <div class="card">
+            <div class="row">
+              <input id="input-${sec.id}" type="text" placeholder="Add an item…" autocomplete="off" />
+              <button id="add-${sec.id}">Add</button>
+              <span class="pill" id="count-${sec.id}">0</span>
+            </div>
+            <div class="list" id="list-${sec.id}"></div>
+          </div>
+        `;
+        main.appendChild(panel);
+        panelsByTab[sec.id] = panel;
+      });
+
+      const wheel = document.createElement("section");
+      wheel.className = "panel";
+      wheel.id = "panel-wheel";
+      wheel.innerHTML = `
+        <div class="card">
+          <div class="spinAllWrap">
+            <button id="spin-all" class="spinAllBtn">🎰 Spin</button>
+          </div>
+
+          <div class="row" style="justify-content:center; margin-bottom:12px;">
+            <span class="pill" id="counts-pill">Items: 0 • Combos: 0</span>
+          </div>
+
+          <div class="wheelGrid" id="wheelGrid"></div>
+
+          <div class="comboBig" id="combo-text">—</div>
+        </div>
+
+        <div class="card" style="margin-top:12px;">
+          <div class="row" style="justify-content:space-between;">
+            <strong>Favorites</strong>
+            <div class="row" style="justify-content:flex-end;">
+              <button id="save-fav">⭐ Save favorite</button>
+              <span class="pill" id="count-favs">0</span>
+            </div>
+          </div>
+          <div class="list" id="list-favs"></div>
+        </div>
+      `;
+      main.appendChild(wheel);
+      panelsByTab["wheel"] = wheel;
+    }
+
+    function buildTabs() {
+      const tabs = $("tabs");
+      tabs.innerHTML = "";
+
+      const defs = [];
+      enabledSections().forEach(sec => defs.push({ key: sec.id, text: sec.label }));
+      defs.push({ key: "wheel", text: "Slot Wheel" });
+
+      defs.forEach(def => {
+        const btn = document.createElement("button");
+        btn.className = "tabBtn";
+        btn.dataset.tab = def.key;
+        btn.innerHTML = `<strong>${escapeHtml(def.text)}</strong>`;
+        btn.addEventListener("click", () => setTab(def.key));
+        tabs.appendChild(btn);
+      });
+
+      if (currentTab !== "wheel") {
+        const ok = enabledSections().some(s => s.id === currentTab);
+        if (!ok) currentTab = "wheel";
       }
+      setTab(currentTab);
     }
 
-    function addTo(list, inputEl) {
-      const v = normalizeInput(inputEl.value);
-      if (!v) return;
-      const exists = list.some(x => x.toLowerCase() === v.toLowerCase());
-      if (!exists) list.unshift(v);
-      inputEl.value = "";
-      save();
-      renderAll();
-    }
-    $("add-first").onclick = () => addTo(firstNames, $("input-first"));
-    $("add-middle").onclick = () => addTo(middleNames, $("input-middle"));
-    $("add-last").onclick = () => addTo(lastNames, $("input-last"));
-
-    ["first","middle","last"].forEach(kind => {
-      $("input-" + kind).addEventListener("keydown", (e) => {
-        if (e.key === "Enter") { e.preventDefault(); $("add-" + kind).click(); }
-      });
-    });
-
-    const panels = {
-      first: $("panel-first"),
-      middle: $("panel-middle"),
-      last: $("panel-last"),
-      wheel: $("panel-wheel")
-    };
+    let currentTab = "wheel";
 
     function setTab(tab) {
       closeOpenMenu();
-      for (const k in panels) panels[k].classList.remove("active");
-      panels[tab].classList.add("active");
+      currentTab = tab;
+
+      Object.values(panelsByTab).forEach(p => p.classList.remove("active"));
+      if (panelsByTab[tab]) panelsByTab[tab].classList.add("active");
 
       document.querySelectorAll(".tabBtn").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.tab === tab);
       });
 
-      if (tab === "first") {
-        title.textContent = "First names";
-        subtitle.textContent = "Add names one at a time. Drag by ≡ to reorder. Tap ⋮ for options. Autosaves.";
-      } else if (tab === "middle") {
-        title.textContent = "Middle names";
-        subtitle.textContent = "Slot #2 can be a middle name, modifier, nickname—anything. Drag by ≡ to reorder.";
-      } else if (tab === "last") {
-        title.textContent = "Last names";
-        subtitle.textContent = "Add last names here. Drag by ≡ to reorder. Tap ⋮ for options.";
+      const sec = sections.find(s => s.id === tab);
+      if (sec) {
+        title.textContent = sec.label;
+        subtitle.textContent = "Add items one at a time. Drag by ≡ to reorder. Tap ⋮ for options. Autosaves.";
       } else {
-        title.textContent = "Slot wheel";
-        subtitle.textContent = "Spin sections or all. Save favorites. Favorites are reorderable too.";
+        title.textContent = "Slot Wheel";
+        subtitle.textContent = "Press Spin. Grip freezes a section. Toggle section visibility in settings.";
       }
     }
-    document.querySelectorAll(".tabBtn").forEach(btn => {
-      btn.addEventListener("click", () => setTab(btn.dataset.tab));
-    });
 
-    function updateCombo() {
-      $("slot-first").textContent = current.first || "—";
-      $("slot-middle").textContent = current.middle || "—";
-      $("slot-last").textContent = current.last || "—";
-      const parts = [current.first, current.middle, current.last].filter(Boolean);
-      $("combo-text").textContent = parts.length ? parts.join(" ") : "—";
+    // ===== Wheel =====
+    function updateCounts() {
+      enabledSections().forEach(sec => {
+        const el = document.getElementById(`count-${sec.id}`);
+        if (el) el.textContent = sec.items.length;
+      });
+
+      const enabled = enabledSections();
+      const lengths = enabled.map(s => s.items.length);
+      const combos = enabled.length ? lengths.reduce((acc, n) => acc * n, 1) : 0;
+
+      const itemsPart = enabled.length ? lengths.join(" • ") : "0";
+      const pill = document.getElementById("counts-pill");
+      if (pill) pill.textContent = `Items: ${itemsPart} • Combos: ${combos || 0}`;
+
+      const favCount = document.getElementById("count-favs");
+      if (favCount) favCount.textContent = favorites.length;
     }
 
-    function spin(which) {
-      if (which === "first")  current.first  = pickRandomDifferent(firstNames, current.first);
-      if (which === "middle") current.middle = pickRandomDifferent(middleNames, current.middle);
-      if (which === "last")   current.last   = pickRandomDifferent(lastNames, current.last);
+    function updateGripUI(secId){
+      const btn = document.getElementById(`grip-${secId}`);
+      if (!btn) return;
+      const on = !!grip[secId];
+      btn.classList.toggle("on", on);
+      btn.innerHTML = on
+        ? `🧲 <span>Grip</span> <span class="mutedSmall">(on)</span>`
+        : `🧲 <span>Grip</span>`;
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+
+    function updateCombo() {
+      const enabled = enabledSections();
+
+      enabled.forEach(s => {
+        const slotEl = document.getElementById(`slot-${s.id}`);
+        if (slotEl) slotEl.textContent = current[s.id] || "—";
+        updateGripUI(s.id);
+      });
+
+      const parts = enabled.map(s => current[s.id]).filter(Boolean);
+      const comboEl = document.getElementById("combo-text");
+      if (comboEl) comboEl.textContent = parts.length ? parts.join(" ") : "—";
+
+      save();
+    }
+
+    function spinSection(secId){
+      const sec = enabledSections().find(s => s.id === secId);
+      if (!sec) return;
+      if (grip[secId]) return; // frozen
+      current[secId] = pickRandomDifferent(sec.items, current[secId]);
       updateCombo();
     }
 
-    $("spin-first").onclick = () => spin("first");
-    $("spin-middle").onclick = () => spin("middle");
-    $("spin-last").onclick = () => spin("last");
-    $("spin-all").onclick = () => { spin("first"); spin("middle"); spin("last"); };
+    function spinAll() {
+      enabledSections().forEach(sec => {
+        if (grip[sec.id]) return; // frozen
+        current[sec.id] = pickRandomDifferent(sec.items, current[sec.id]);
+      });
+      updateCombo();
+    }
 
-    function saveFavorite() {
-      const combo = $("combo-text").textContent;
-      if (!combo || combo === "—") return;
-      if (!favorites.includes(combo)) favorites.unshift(combo);
+    function toggleGrip(secId){
+      grip[secId] = !grip[secId];
+      updateGripUI(secId);
+      save();
+    }
+
+    function renderWheel() {
+      const grid = document.getElementById("wheelGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      const enabled = enabledSections();
+      enabled.forEach(sec => {
+        const col = document.createElement("div");
+        col.className = "slotCol";
+        col.innerHTML = `
+          <div class="slotTitle"><strong>${escapeHtml(sec.label)}</strong></div>
+          <div class="slot clickable" id="slot-${sec.id}" title="Click to spin this section">—</div>
+          <button class="gripBtn" id="grip-${sec.id}" type="button" aria-pressed="false">🧲 Grip</button>
+        `;
+        grid.appendChild(col);
+
+        const slotEl = col.querySelector(`#slot-${CSS.escape(sec.id)}`);
+        const gripBtn = col.querySelector(`#grip-${CSS.escape(sec.id)}`);
+
+        if (slotEl) slotEl.onclick = () => spinSection(sec.id);
+        if (gripBtn) gripBtn.onclick = () => toggleGrip(sec.id);
+      });
+
+      const spinBtn = document.getElementById("spin-all");
+      if (spinBtn) spinBtn.onclick = spinAll;
+    }
+
+    // ===== Editor wiring =====
+    function addToSection(secId) {
+      const sec = sections.find(s => s.id === secId);
+      const input = document.getElementById(`input-${secId}`);
+      if (!sec || !input) return;
+
+      const v = normalizeInput(input.value);
+      if (!v) return;
+
+      const exists = sec.items.some(x => String(x).toLowerCase() === v.toLowerCase());
+      if (!exists) sec.items.unshift(v);
+
+      input.value = "";
       save();
       renderAll();
     }
-    $("save-fav-top").onclick = saveFavorite;
 
+    // ===== Render all =====
+    function renderAll() {
+      // ensure keys exist
+      sections.forEach(s => { if (!(s.id in current)) current[s.id] = ""; });
+      sections.forEach(s => { if (!(s.id in grip)) grip[s.id] = false; });
+
+      buildPanels();
+      buildTabs();
+      renderWheel();
+
+      enabledSections().forEach(sec => {
+        const listEl = document.getElementById(`list-${sec.id}`);
+        const addBtn = document.getElementById(`add-${sec.id}`);
+        const inputEl = document.getElementById(`input-${sec.id}`);
+
+        if (addBtn) addBtn.onclick = () => addToSection(sec.id);
+        if (inputEl) {
+          inputEl.placeholder = `Add a ${sec.label.toLowerCase()}…`;
+          inputEl.onkeydown = (e) => {
+            if (e.key === "Enter") { e.preventDefault(); addToSection(sec.id); }
+          };
+        }
+
+        if (listEl) {
+          renderList(listEl, sec.items,
+            (i) => {
+              const v = promptEdit(sec.items[i]);
+              if (v) { sec.items[i] = v; save(); renderAll(); }
+            },
+            (i) => { sec.items.splice(i, 1); save(); renderAll(); }
+          );
+          attachReorderHandlers(listEl, sec.items);
+        }
+      });
+
+      const favList = document.getElementById("list-favs");
+      if (favList) {
+        renderFavs(favList);
+        attachReorderHandlers(favList, favorites);
+      }
+
+      const saveFav = document.getElementById("save-fav");
+      if (saveFav) {
+        saveFav.onclick = () => {
+          const combo = document.getElementById("combo-text")?.textContent;
+          if (!combo || combo === "—") return;
+          if (!favorites.includes(combo)) favorites.unshift(combo);
+          save();
+          renderAll();
+        };
+      }
+
+      updateCounts();
+      updateCombo();
+    }
+
+    // ===== Settings modal (visibility only) =====
+    const overlay = $("settingsOverlay");
+    const settingsBtn = $("settingsBtn");
+    const closeSettingsBtn = $("closeSettings");
+
+    function openSettings(){
+      renderSettingsUI();
+      overlay.classList.add("open");
+      overlay.setAttribute("aria-hidden","false");
+    }
+    function closeSettings(){
+      overlay.classList.remove("open");
+      overlay.setAttribute("aria-hidden","true");
+    }
+    settingsBtn.onclick = openSettings;
+    closeSettingsBtn.onclick = closeSettings;
+    overlay.addEventListener("pointerdown", (e) => {
+      if (e.target === overlay) closeSettings();
+    });
+
+    function renderSettingsUI(){
+      const wrap = $("sectionSettings");
+      wrap.innerHTML = "";
+
+      sections.forEach(sec => {
+        const row = document.createElement("div");
+        row.className = "visRow";
+
+        const enabledId = `sec-enabled-${sec.id}`;
+
+        row.innerHTML = `
+          <div style="min-width:0; display:grid; gap:6px;">
+            <div class="visName">${escapeHtml(sec.label)}</div>
+            <div class="muted" style="font-size:12px;">${sec.enabled ? "Visible" : "Hidden"}</div>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center;">
+            <div class="visBadge" id="badge-${sec.id}">${sec.enabled ? "ON" : "OFF"}</div>
+            <label class="switch" title="Visibility">
+              <input id="${enabledId}" type="checkbox" ${sec.enabled ? "checked":""} />
+              <span class="slider"></span>
+            </label>
+          </div>
+        `;
+        wrap.appendChild(row);
+
+        // live update badge text while toggling
+        const cb = row.querySelector(`#${CSS.escape(enabledId)}`);
+        const badge = row.querySelector(`#badge-${CSS.escape(sec.id)}`);
+        const mutedLine = row.querySelector(".muted");
+        cb.addEventListener("change", () => {
+          badge.textContent = cb.checked ? "ON" : "OFF";
+          mutedLine.textContent = cb.checked ? "Visible" : "Hidden";
+        });
+      });
+    }
+
+    $("saveSettings").onclick = () => {
+      // apply toggles only
+      sections = sections.map(sec => {
+        const enabledEl = document.getElementById(`sec-enabled-${sec.id}`);
+        const nextEnabled = !!(enabledEl && enabledEl.checked);
+        return { ...sec, enabled: nextEnabled };
+      });
+
+      save();
+      closeSettings();
+      renderAll();
+
+      if (currentTab !== "wheel") {
+        const ok = enabledSections().some(s => s.id === currentTab);
+        if (!ok) setTab("wheel");
+      }
+    };
+
+    // ===== Init =====
     $("themeToggle").onclick = toggleTheme;
 
-    // Init
     applyTheme();
     renderAll();
-    setTab("first");
+    setTab(enabledSections()[0]?.id || "wheel");
   </script>
 </body>
 </html>
